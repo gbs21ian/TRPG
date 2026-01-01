@@ -489,6 +489,7 @@
       currentScenario: "",
       playerCount: 1,
       characters: [],
+      longPrompt: "",
       isBusy: false,
       diceTimer: null,
       
@@ -539,7 +540,8 @@
         playerCount: state.mode === 'multi' ? charsToSave.length : state.playerCount,
         characters: charsToSave,
         mode: state.mode, // Save the mode
-        chatHtml: chatLog.innerHTML
+        chatHtml: chatLog.innerHTML,
+        longPrompt: state.longPrompt
       };
 
       try {
@@ -648,6 +650,7 @@
       state.playerCount = save.playerCount;
       state.characters = save.characters;
       state.mode = save.mode || 'solo';
+      state.longPrompt = save.longPrompt || "";
       
       // UI 복원
       if (connectedProvider) connectedProvider.textContent = state.provider === "gemini" ? "Gemini" : "OpenAI";
@@ -968,7 +971,8 @@
     function getSystemPrompt(playerCount) {
       return `당신은 던전 앤 드래곤 5판 규칙을 따르는 AI 게임 마스터입니다.
 플레이어는 총 ${playerCount}명이며, 능력치 판정과 공격/세이브 굴림 결과(고정 d6)를 기반으로 서술하세요.
-각 장면마다 예상 DC, 판정 근거, 다음 행동 선택지 2~3가지를 한국어로 제안하십시오.`;
+각 장면마다 예상 DC, 판정 근거, 다음 행동 선택지 2~3가지를 한국어로 제안하십시오.
+마크다운과 특수 서식(특히 ** 굵게 표기)을 사용하지 말고, 평문으로만 작성하십시오.` + (state.longPrompt ? `\n세계관 및 진행 지침:\n${state.longPrompt}` : "");
     }
 
     function buildCharacterSummary(characters) {
@@ -1186,8 +1190,9 @@
           ? await requestGemini(payloadMessages, model, apiKey)
           : await requestOpenAI(payloadMessages, model, apiKey);
 
-        state.history = [...payloadMessages, { role: "assistant", content: reply }];
-        appendChat("assistant", reply);
+        const clean = (reply || "").replace(/\*\*/g, "");
+        state.history = [...payloadMessages, { role: "assistant", content: clean }];
+        appendChat("assistant", clean);
         setStatus("턴이 종료되었습니다. 다음 행동을 입력하세요.");
       } catch (error) {
         console.error(error);
@@ -1304,6 +1309,15 @@
     });
     
     btnSaveGame.addEventListener("click", apiSaveGame);
+    (async () => {
+      try {
+        const res = await fetch('/prompts/world.md');
+        if (res.ok) {
+          const text = (await res.text()).trim();
+          state.longPrompt = text;
+        }
+      } catch {}
+    })();
 
     saveCharacterBtn.addEventListener("click", () => {
       try {

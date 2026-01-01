@@ -1,0 +1,16 @@
+[[redirects]]
+from = "/api/*"
+to = "https://trpg-backend.onrender.com/api/:s"
+status = 200
+force = true
+
+[[redirects]]
+from = "/socket.io/*"
+to = "https://trpg-backend.onrender.com/socket.io/:s"
+status = 200
+force = true
+
+[[redirects]]
+from = "/*"
+to = "/trpg.html"
+status = 200

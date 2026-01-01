@@ -1,0 +1,25 @@
+[
+  {
+    "id": "87e14e75-b703-4265-8388-0a621b91c1b2",
+    "title": "이안의 모험 (Multi)",
+    "timestamp": 1767288215005,
+    "provider": "gemini",
+    "model": "gemini-robotics-er-1.5-preview",
+    "history": [],
+    "currentScenario": "산성비가 내리는 아이언홀드 폐광. 고블린들이 세계수 뿌리를 훔쳤고, 네 명의 용사가 되찾아야 한다.",
+    "playerCount": 1,
+    "characters": [
+      {
+        "name": "이안",
+        "gender": "여성",
+        "race": "엘프",
+        "age": "18",
+        "role": "파이터",
+        "origin": "최강",
+        "traits": "최강"
+      }
+    ],
+    "mode": "solo",
+    "chatHtml": ""
+  }
+]

@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemini TRPG Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#3625f4",
+            "primary-dark": "#2b1dc2",
+            "background-light": "#f6f5f8",
+            "background-dark": "#111022",
+            "surface-dark": "#1a1a2f",
+            "surface-border": "#252249",
+            "text-secondary": "#9590cb",
+            "input-bg": "#1b1834",
+          },
+          fontFamily: {
+            "display": ["Space Grotesk", "Noto Sans", "sans-serif"],
+            "body": ["Noto Sans", "sans-serif"],
+          },
+          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+        },
+      },
+    }
+  </script>
+  <style>
+    :root { color-scheme: dark; }
+    body { font-family: "Space Grotesk", "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #111022; }
+    ::-webkit-scrollbar-thumb { background: #252249; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3625f4; }
+    .glass-panel {
+      background: rgba(26, 26, 32, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(54, 37, 244, 0.15);
+    }
+    .rich-text { white-space: pre-wrap; line-height: 1.7; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    #chat-log { overflow-x: hidden; }
+    #chat-log, #chat-log * { word-break: break-word; overflow-wrap: anywhere; }
+    #chat-log pre, #chat-log code { white-space: pre-wrap; word-break: break-word; }
+    #chat-log img { max-width: 100%; height: auto; display: inline-block; }
+    #chat-log { max-height: calc(100vh - 320px); }
+    #app-version {
+      position: fixed;
+      bottom: 10px;
+      right: 12px;
+      z-index: 100;
+      font-size: 11px;
+      color: #c7c7ff;
+      background: rgba(21, 19, 34, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 10px;
+      border-radius: 10px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen overflow-hidden">
+    <div class="relative flex min-h-screen flex-col overflow-hidden">
+    <div class="pointer-events-none absolute -top-20 -left-20 h-[420px] w-[420px] rounded-full bg-primary/20 blur-[120px]"></div>
+    <div class="pointer-events-none absolute -bottom-32 -right-32 h-[520px] w-[520px] rounded-full bg-purple-600/20 blur-[140px]"></div>
+    <div class="relative z-10 flex min-h-screen flex-col">
+      <header class="flex items-center justify-between border-b border-surface-border bg-surface-dark/60 px-4 py-4 text-white backdrop-blur md:px-10">
+        <div class="flex items-center gap-3">
+          <div class="flex size-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+            <span class="material-symbols-outlined text-3xl">token</span>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight">Gemini TRPG</h1>
+            <p class="text-xs text-text-secondary">AI Dice Master Suite</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="hidden sm:flex h-10 items-center gap-2 rounded-lg border border-white/10 px-4 text-sm font-semibold text-white transition hover:border-primary hover:text-primary">
+            <span class="material-symbols-outlined text-base">description</span>
+            문서
+          </button>
+          <button class="flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark">
+            <span class="material-symbols-outlined text-base">play_arrow</span>
+            미리보기
+          </button>
+          <button id="btn-save-game" class="hidden h-10 items-center gap-2 rounded-lg border border-white/10 px-4 text-sm font-semibold text-white transition hover:border-emerald-500 hover:text-emerald-400">
+            <span class="material-symbols-outlined text-base">save</span>
+            저장
+          </button>
+        </div>
+      </header>
+      <main class="flex flex-1 flex-col gap-8 px-4 py-6 sm:px-8 lg:px-12">
+        <div id="app-version">v26.1.02</div>
+        <section id="page-key" class="flex min-h-[calc(100vh-160px)] flex-col items-center justify-center">
+          <div class="w-full max-w-4xl glass-panel rounded-3xl p-1 shadow-2xl shadow-black/50">
+            <div class="flex flex-col gap-6 rounded-3xl bg-white p-6 text-slate-900 dark:bg-[#151322] dark:text-white sm:p-10">
+              <div class="flex flex-col gap-3 text-center sm:text-left">
+                <div class="mx-auto inline-flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary sm:mx-0">
+                  <span class="material-symbols-outlined text-3xl">key</span>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-[0.4em] text-primary/70">Arcane Access</p>
+                  <h2 class="mt-2 text-3xl font-bold">Gemini API Key로 던전에 입장하세요</h2>
+                  <p class="text-sm text-slate-500 dark:text-text-secondary">Google Gemini 또는 OpenAI 키를 기기에 저장해 AI 게임 마스터를 불러옵니다. 키는 로컬에만 보관돼요.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4 text-sm text-blue-100">
+                <span class="material-symbols-outlined text-blue-300">shield_lock</span>
+                <p>키는 계정 식별용으로 사용되며 서버에 암호화되어 저장됩니다.</p>
+              </div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label class="flex flex-col gap-2 text-sm font-semibold text-slate-600 dark:text-gray-300">
+                  API 제공자
+                  <select id="setup-provider" class="rounded-2xl border border-white/10 bg-input-bg/80 py-3 pl-4 pr-10 text-base text-white focus:border-primary focus:ring-1 focus:ring-primary">
+                    <option value="gemini" selected>Gemini</option>
+                    <option value="openai">OpenAI</option>
+                  </select>
+                </label>
+                <label class="flex flex-col gap-2 text-sm font-semibold text-slate-600 dark:text-gray-300">
+                  API Key
+                  <div class="relative">
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-text-secondary">vpn_key</span>
+                    <input id="setup-api-key" type="password" autocomplete="off" placeholder="AIza..." class="w-full rounded-2xl border border-white/10 bg-input-bg/80 py-3 pl-11 pr-4 text-base text-white placeholder:text-text-secondary focus:border-primary focus:ring-1 focus:ring-primary" />
+                  </div>
+                  <span class="text-xs font-normal text-text-secondary">형식은 보통 'AIza' 또는 'sk-'로 시작합니다.</span>
+                </label>
+              </div>
+              <div class="flex flex-wrap items-center gap-4">
+                <button type="button" id="enter-lair" class="flex-1 rounded-2xl bg-primary px-6 py-4 text-base font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark">던전에 입장</button>
+                <p id="setup-status" class="text-sm text-text-secondary">Gemini 키를 입력하면 다음 페이지에서 게임을 준비할 수 있어요.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-saves" class="hidden min-h-[calc(100vh-160px)] flex-col items-center justify-center">
+          <div class="w-full max-w-4xl glass-panel rounded-3xl p-1 shadow-2xl shadow-black/50">
+            <div class="flex flex-col gap-6 rounded-3xl bg-white p-6 text-slate-900 dark:bg-[#151322] dark:text-white sm:p-10">
+              <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <div>
+                  <h2 class="text-2xl font-bold">모험 기록</h2>
+                  <p class="text-sm text-text-secondary">이전 모험을 불러오거나 새로운 여정을 시작하세요.</p>
+                </div>
+                <button id="btn-to-lobby" class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-dark">새로운 모험 시작</button>
+              </div>
+              <div id="save-list" class="flex max-h-[400px] flex-col gap-3 overflow-y-auto pr-2">
+                <!-- 세이브 슬롯들이 여기에 동적으로 추가됩니다 -->
+                <div class="flex items-center justify-center py-10 text-text-secondary">
+                  저장된 모험이 없습니다.
+                </div>
+              </div>
+              <div class="flex justify-end pt-2">
+                <button id="btn-back-to-key" class="text-sm text-text-secondary hover:text-white">API 키 다시 입력</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-lobby" class="hidden min-h-[calc(100vh-160px)] flex-col items-center justify-center">
+          <div class="w-full max-w-4xl glass-panel rounded-3xl p-1 shadow-2xl shadow-black/50">
+            <div class="flex flex-col gap-6 rounded-3xl bg-white p-6 text-slate-900 dark:bg-[#151322] dark:text-white sm:p-10">
+              <div class="text-center">
+                <h2 class="text-3xl font-bold mb-2">모험 방식 선택</h2>
+                <p class="text-sm text-text-secondary">혼자서 이야기를 만들어가거나, 동료들과 함께 모험을 떠나세요.</p>
+              </div>
+              <div class="grid gap-6 sm:grid-cols-2 mt-4">
+                <button id="btn-mode-solo" class="flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-8 transition hover:border-primary hover:bg-white/10 group">
+                  <div class="flex size-20 items-center justify-center rounded-full bg-primary/20 text-primary group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-4xl">person</span>
+                  </div>
+                  <div class="text-center">
+                    <h3 class="text-xl font-bold text-white mb-1">솔로 플레이</h3>
+                    <p class="text-sm text-text-secondary">AI GM과 1:1로 진행하는<br>나만의 서사시</p>
+                  </div>
+                </button>
+                <button id="btn-mode-multi" class="flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-8 transition hover:border-purple-500 hover:bg-white/10 group">
+                  <div class="flex size-20 items-center justify-center rounded-full bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-4xl">groups</span>
+                  </div>
+                  <div class="text-center">
+                    <h3 class="text-xl font-bold text-white mb-1">멀티 플레이</h3>
+                    <p class="text-sm text-text-secondary">친구들과 함께 떠나는<br>실시간 파티 모험</p>
+                  </div>
+                </button>
+              </div>
+              <div class="flex justify-center pt-4">
+                <button id="btn-back-to-saves" class="text-sm text-text-secondary hover:text-white">뒤로 가기</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-multiplayer" class="hidden min-h-[calc(100vh-160px)] flex-col items-center justify-center">
+          <div class="w-full max-w-lg glass-panel rounded-3xl p-1 shadow-2xl shadow-black/50">
+            <div class="flex flex-col gap-6 rounded-3xl bg-white p-6 text-slate-900 dark:bg-[#151322] dark:text-white sm:p-10">
+              <div class="text-center">
+                <h2 class="text-2xl font-bold mb-2">멀티플레이 로비</h2>
+                <p class="text-sm text-text-secondary">방을 만들거나 코드를 입력해 참가하세요.</p>
+              </div>
+              
+              <div class="space-y-4">
+                <div class="flex flex-col gap-2">
+                  <label class="text-sm font-semibold text-white">닉네임</label>
+                  <input id="multi-nickname" type="text" placeholder="모험가 이름" class="w-full rounded-2xl border border-white/10 bg-input-bg/80 py-3 px-4 text-base text-white focus:border-primary focus:ring-1 focus:ring-primary" />
+                </div>
+                
+                <div class="border-t border-white/10 my-4"></div>
+
+                <button id="btn-create-room" class="w-full rounded-2xl bg-primary py-3 text-base font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark">
+                  방 만들기
+                </button>
+                
+                <div class="relative flex py-2 items-center">
+                  <div class="flex-grow border-t border-white/10"></div>
+                  <span class="flex-shrink-0 mx-4 text-text-secondary text-xs">또는</span>
+                  <div class="flex-grow border-t border-white/10"></div>
+                </div>
+
+                <div class="flex gap-2">
+                  <input id="room-code-input" type="text" placeholder="참가 코드 입력" class="flex-1 rounded-2xl border border-white/10 bg-input-bg/80 py-3 px-4 text-base text-white uppercase text-center tracking-widest focus:border-purple-500 focus:ring-1 focus:ring-purple-500" maxlength="6" />
+                  <button id="btn-join-room" class="rounded-2xl bg-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-purple-600/30 transition hover:bg-purple-700">
+                    참가
+                  </button>
+                </div>
+              </div>
+              
+              <div class="flex justify-center pt-2">
+                <button id="btn-back-to-lobby" class="text-sm text-text-secondary hover:text-white">뒤로 가기</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-waiting-room" class="hidden min-h-[calc(100vh-160px)] flex-col items-center justify-center">
+          <div class="w-full max-w-4xl glass-panel rounded-3xl p-1 shadow-2xl shadow-black/50">
+            <div class="flex flex-col gap-6 rounded-3xl bg-white p-6 text-slate-900 dark:bg-[#151322] dark:text-white sm:p-10">
+              <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <div>
+                  <h2 class="text-2xl font-bold">대기실</h2>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-sm text-text-secondary">초대 코드:</span>
+                    <span id="display-room-code" class="text-xl font-mono font-bold text-primary tracking-widest select-all cursor-pointer bg-primary/10 px-2 rounded">------</span>
+                  </div>
+                </div>
+                <div id="host-controls" class="hidden">
+                  <button id="btn-start-multi-game" class="rounded-xl bg-emerald-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">게임 시작</button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="player-list">
+                <!-- 플레이어 카드들이 여기에 동적으로 추가됩니다 -->
+              </div>
+
+              <div class="flex justify-center pt-4 pb-2">
+                <button id="btn-create-character-multi" class="rounded-xl bg-purple-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-purple-700">캐릭터 생성/수정</button>
+              </div>
+              
+              <div class="flex justify-center pt-4">
+                 <button id="btn-leave-room" class="text-sm text-red-400 hover:text-red-300">방 나가기</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-character" class="hidden min-h-[calc(100vh-160px)] flex-col justify-center">
+          <div class="grid gap-6 lg:grid-cols-[320px_1fr]">
+            <div class="rounded-3xl border border-surface-border bg-surface-dark/60 p-6 text-white shadow-2xl">
+              <p class="text-xs uppercase tracking-[0.4em] text-primary/70">Character Forge</p>
+              <h2 class="mt-3 text-3xl font-bold">영웅의 정체성을 설계하세요</h2>
+              <p class="mt-2 text-sm text-text-secondary">플레이어 수를 입력하면 자동으로 카드가 생성됩니다. 각 정보는 AI GM에게 공유되어 고유한 개성을 유지합니다.</p>
+              <label class="mt-6 flex flex-col gap-2 text-sm font-semibold text-white">
+                플레이어 수
+                <input id="character-count" type="number" min="1" max="4" value="1" class="rounded-2xl border border-white/20 bg-input-bg/70 py-3 px-4 text-base focus:border-primary focus:ring-1 focus:ring-primary" />
+                <span class="text-xs font-normal text-text-secondary">최대 4명까지 한 번에 설정할 수 있습니다.</span>
+              </label>
+              <div class="mt-6 space-y-3 rounded-2xl border border-white/10 bg-black/30 p-4">
+                <p class="text-sm font-semibold text-white">TIP</p>
+                <ul class="list-disc space-y-1 pl-5 text-xs text-text-secondary">
+                  <li>능력치 합은 30이하로 맞추세요.</li>
+                  <li>출신/가치관을 자세히 적을수록 GM 서사가 풍부해집니다.</li>
+                </ul>
+              </div>
+              <button type="button" id="save-character" class="mt-6 w-full rounded-2xl bg-primary py-3 text-base font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark">캐릭터 저장</button>
+              <p id="character-status" class="mt-3 text-sm text-text-secondary">필수 항목을 채우고 캐릭터를 저장하세요.</p>
+            </div>
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-4 sm:p-6 lg:p-8 backdrop-blur scrollbar overflow-y-auto max-h-[calc(100vh-220px)]">
+              <form id="character-form" class="flex flex-col gap-5">
+                <div id="character-forms" class="space-y-5"></div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-game" class="hidden min-h-[calc(100vh-160px)] flex-col gap-4">
+          <div class="flex flex-1 min-h-0 flex-col overflow-hidden rounded-3xl border border-surface-border bg-surface-dark/70 shadow-2xl shadow-black/50">
+            <div class="flex flex-1 min-h-0 flex-col lg:flex-row">
+              <aside id="left-aside" class="flex w-full flex-col gap-5 border-b border-surface-border bg-black/20 p-5 backdrop-blur lg:w-80 lg:border-b-0 lg:border-r">
+                <div class="rounded-2xl border border-white/10 bg-black/30 p-4" id="scenario-panel">
+                  <div class="flex items-center justify-between text-xs font-semibold text-text-secondary">
+                    <span>랜덤 시나리오</span>
+                    <button id="reroll-scenario" class="rounded-xl border border-white/20 px-3 py-1 text-[11px] text-white transition hover:border-primary">새 시나리오</button>
+                  </div>
+                  <div id="scenario-display" class="scrollbar rich-text mt-3 max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-slate-200"></div>
+                  <button id="prep-new-scenario" class="mt-3 w-full rounded-xl border border-white/20 py-2 text-xs font-semibold text-text-secondary transition hover:border-primary hover:text-white">새 시나리오 준비</button>
+                </div>
+                <button id="start-session" class="rounded-2xl bg-primary py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark">랜덤 시나리오로 게임 시작</button>
+              </aside>
+
+              <div class="flex min-h-0 flex-1 flex-col border-surface-border bg-black/30 relative">
+                <div id="player-profiles" class="scrollbar hidden flex-shrink-0 gap-4 overflow-x-auto border-b border-surface-border bg-black/30 px-6 py-4"></div>
+                <div id="chat-log" class="scrollbar flex-1 min-h-0 space-y-6 overflow-y-auto overflow-x-hidden break-words px-6 py-6 text-base max-w-full"></div>
+                <div class="border-t border-surface-border bg-black/70 p-4 backdrop-blur flex-none">
+                 
+                  <label for="player-input" class="text-[11px] font-semibold uppercase tracking-wide text-text-secondary">플레이어 행동 입력</label>
+                  <div class="mt-2 flex flex-col gap-3 rounded-2xl border border-surface-border bg-surface-dark/70 p-3 shadow-inner shadow-black/40">
+                    <textarea id="player-input" rows="3" placeholder="행동, 대사, 주사위 결과 등을 입력하세요." class="h-24 w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-2 text-base text-white placeholder:text-text-secondary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
+                    <div class="flex flex-wrap items-center gap-3">
+                      <button id="send-message" class="rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60">전송</button>
+                    </div>
+                  </div>
+                  <p id="status" class="mt-2 text-xs text-text-secondary">API 키를 등록한 뒤 시나리오를 선택하세요.</p>
+                </div>
+              </div>
+
+              <aside class="hidden w-80 flex-col gap-4 border-l border-surface-border bg-black/20 p-5 backdrop-blur xl:flex">
+                <div id="dice-panel" class="hidden rounded-2xl border border-white/10 bg-black/40 p-4 text-white">
+                  <div class="flex items-center justify-between text-xs uppercase tracking-widest text-text-secondary">
+                    <span>주사위 판정</span>
+                    <span class="text-[10px] text-text-secondary">자동 기록</span>
+                  </div>
+                  <div class="mt-4 flex items-center justify-center gap-3">
+                    <div class="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-black/50 text-4xl" id="dice-visual-a">⚀</div>
+                    <div class="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-black/50 text-4xl" id="dice-visual-b">⚁</div>
+                  </div>
+                  <p id="dice-summary" class="mt-4 text-center text-xs text-text-secondary">아직 판정이 없습니다.</p>
+                  <div class="mt-4">
+                    <p class="text-[11px] font-semibold text-text-secondary">최근 판정 기록</p>
+                    <ul id="dice-log" class="scrollbar mt-2 max-h-40 space-y-1 overflow-y-auto rounded-2xl border border-white/10 bg-black/50 p-3 text-[11px] text-slate-200"></ul>
+                  </div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-black/40 p-4" id="party-stats-panel">
+                  <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                    <span>파티 능력치</span>
+                    <span class="text-[10px] text-text-secondary">어려운 성공 시 상승</span>
+                  </div>
+                  <div id="party-stats" class="mt-3 space-y-3 text-xs text-slate-200"></div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-semibold text-white">언리밋 모드 (19금)</p>
+                      <p class="text-[11px] text-text-secondary">성인용 묘사와 제한 없는 스토리를 허용합니다.</p>
+                    </div>
+                    <label class="relative inline-flex cursor-pointer items-center">
+                      <input type="checkbox" id="unlimited-toggle" class="peer sr-only">
+                      <div class="peer h-6 w-11 rounded-full bg-slate-700 transition peer-checked:bg-primary"></div>
+                      <div class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition peer-checked:translate-x-5"></div>
+                    </label>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+<script>
+    function resolveBackendURL() {
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = params.get("backend");
+      if (fromQuery) {
+        try { localStorage.setItem("trpg_backend", fromQuery); } catch {}
+        return fromQuery;
+      }
+      try {
+        const saved = localStorage.getItem("trpg_backend");
+        if (saved) return saved;
+      } catch {}
+      const host = window.location.hostname || "";
+      return host.endsWith(".netlify.app") ? window.location.origin : window.location.origin;
+    }
+    const BACKEND_URL = resolveBackendURL();
+    function chooseTransports() {
+      const host = window.location.hostname || "";
+      // Netlify는 웹소켓 프록시를 지원하지 않음 → 폴링만 사용
+      if (host.endsWith(".netlify.app") && !localStorage.getItem("trpg_backend") && !new URLSearchParams(window.location.search).get("backend")) {
+        return ["polling"];
+      }
+      return ["websocket", "polling"];
+    }
+    const socket = io(BACKEND_URL, { path: "/socket.io", transports: chooseTransports() });
+
+    const scenarioPool = [
+      "황혼이 깔린 디르나 숲. 고대 드루이드의 돌무더기 아래에 봉인된 정령핵을 찾기 위해 3층 깊이의 던전에 잠입한다.",
+      "바르모른 항구도시의 지하에서 용병단이 실종됐다. 지하 하수로를 지나 수몰된 성소의 비밀을 밝혀야 한다.",
+      "붉은 사막 오아시스에 갑자기 나타난 수정탑. 탑의 각 층은 다른 시공간으로 연결되어 있다.",
+      "산성비가 내리는 아이언홀드 폐광. 고블린들이 세계수 뿌리를 훔쳤고, 네 명의 용사가 되찾아야 한다.",
+      "얼어붙은 수도원의 지하납골당. 리치가 만든 영혼 수정이 폭주하기 직전이다.",
+      "안개가 짙게 드리운 라벤타운. 뱀파이어 가문이 소환식을 준비 중이며, 은촉 성당이 마지막 방어선이다.",
+      "거울 호수 아래에 반쯤 잠긴 바실리스크 둥지. 희귀 약초와 독이 공존하는 위험지대다.",
+      "천둥전차가 추락한 기계 장벽지대. 톱니 요정과 협상해 방어장치를 되살려야 한다."
+    ];
+    const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+    const pageKey = document.getElementById("page-key");
+    const pageSaves = document.getElementById("page-saves");
+    const pageLobby = document.getElementById("page-lobby");
+    const pageMultiplayer = document.getElementById("page-multiplayer");
+    const pageWaitingRoom = document.getElementById("page-waiting-room");
+    const pageCharacter = document.getElementById("page-character");
+    const pageGame = document.getElementById("page-game");
+    
+    const enterBtn = document.getElementById("enter-lair");
+    const setupProvider = document.getElementById("setup-provider");
+    const setupApiKey = document.getElementById("setup-api-key");
+    const setupStatus = document.getElementById("setup-status");
+
+    const saveList = document.getElementById("save-list");
+    const btnToLobby = document.getElementById("btn-to-lobby");
+    const btnBackToKey = document.getElementById("btn-back-to-key");
+    const btnSaveGame = document.getElementById("btn-save-game");
+
+    const btnModeSolo = document.getElementById("btn-mode-solo");
+    const btnModeMulti = document.getElementById("btn-mode-multi");
+    const btnBackToSaves = document.getElementById("btn-back-to-saves");
+
+    const multiNickname = document.getElementById("multi-nickname");
+    const btnCreateRoom = document.getElementById("btn-create-room");
+    const roomCodeInput = document.getElementById("room-code-input");
+    const btnJoinRoom = document.getElementById("btn-join-room");
+    const btnBackToLobby = document.getElementById("btn-back-to-lobby");
+
+    const displayRoomCode = document.getElementById("display-room-code");
+    const playerList = document.getElementById("player-list");
+    const hostControls = document.getElementById("host-controls");
+    const btnStartMultiGame = document.getElementById("btn-start-multi-game");
+    const btnLeaveRoom = document.getElementById("btn-leave-room");
+
+    const connectedProvider = document.getElementById("connected-provider");
+    const connectedModel = document.getElementById("connected-model");
+    const scenarioDisplay = document.getElementById("scenario-display");
+    const scenarioPanel = document.getElementById("scenario-panel");
+    const dicePanel = document.getElementById("dice-panel");
+    const rerollScenarioBtn = document.getElementById("reroll-scenario");
+    const startBtn = document.getElementById("start-session");
+    const prepNewScenarioBtn = document.getElementById("prep-new-scenario");
+
+    const characterCountInput = document.getElementById("character-count");
+    const characterFormsWrapper = document.getElementById("character-forms");
+    const saveCharacterBtn = document.getElementById("save-character");
+    const characterStatus = document.getElementById("character-status");
+
+    const diceVisualA = document.getElementById("dice-visual-a");
+    const diceVisualB = document.getElementById("dice-visual-b");
+    const diceSummary = document.getElementById("dice-summary");
+    const diceLog = document.getElementById("dice-log");
+
+    const chatLog = document.getElementById("chat-log");
+    const playerInput = document.getElementById("player-input");
+    const sendBtn = document.getElementById("send-message");
+    const statusEl = document.getElementById("status");
+
+    const difficultyTargets = {
+      easy: { label: "쉬움", target: 6 },
+      standard: { label: "보통", target: 8 },
+      hard: { label: "어려움", target: 10 },
+      deadly: { label: "치명적", target: 11 }
+    };
+
+    const state = {
+      mode: 'solo', // 'solo' | 'multi'
+      saveId: null, // 현재 로드된 세이브 ID
+      history: [],
+      provider: "gemini",
+      apiKey: "",
+      model: "",
+      currentScenario: "",
+      playerCount: 1,
+      characters: [],
+      isBusy: false,
+      diceTimer: null,
+      
+      // Multiplayer State
+      roomCode: null,
+      isHost: false,
+      nickname: "",
+      players: [],
+      turnIndex: 0,
+      restoringMultiSave: false,
+      restorePlayers: [],
+      restoreChatHtml: ""
+    };
+
+    // --- API & Save Logic ---
+
+    async function apiLogin(apiKey) {
+      const res = await fetch(`${BACKEND_URL}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey })
+      });
+      if (!res.ok) throw new Error('로그인 실패');
+      return res.json();
+    }
+
+    async function apiSaveGame() {
+      if (!state.apiKey) return;
+      
+      // Determine characters to save
+      let charsToSave = state.characters;
+      if (state.mode === 'multi' && state.players && state.players.length > 0) {
+          charsToSave = state.players.map(p => p.character).filter(Boolean);
+      }
+      
+      const title = charsToSave[0]?.name 
+        ? `${charsToSave[0].name}의 모험 (Multi)` 
+        : `이름 없는 모험 (${new Date().toLocaleDateString()})`;
+        
+      const saveData = {
+        id: state.saveId || crypto.randomUUID(),
+        title: state.mode === 'multi' ? `[멀티] ${title}` : title,
+        timestamp: Date.now(),
+        provider: state.provider,
+        model: state.model,
+        history: state.history,
+        currentScenario: state.currentScenario,
+        playerCount: state.mode === 'multi' ? charsToSave.length : state.playerCount,
+        characters: charsToSave,
+        mode: state.mode, // Save the mode
+        chatHtml: chatLog.innerHTML
+      };
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/save`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey: state.apiKey, saveData })
+        });
+        if (!res.ok) throw new Error('저장 실패');
+        state.saveId = saveData.id;
+        setStatus("게임이 저장되었습니다.");
+        alert("저장되었습니다!");
+      } catch (e) {
+        console.error(e);
+        alert("저장 중 오류가 발생했습니다.");
+      }
+    }
+
+    async function apiDeleteSave(saveId) {
+      if (!state.apiKey) return;
+      const res = await fetch(`${BACKEND_URL}/api/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: state.apiKey, saveId })
+      });
+      if (!res.ok) throw new Error('삭제 실패');
+      return res.json();
+    }
+
+    function renderSaveList(saves) {
+      if (!saves || saves.length === 0) {
+        saveList.innerHTML = `
+          <div class="flex items-center justify-center py-10 text-text-secondary">
+            저장된 모험이 없습니다.
+          </div>`;
+        return;
+      }
+
+      saveList.innerHTML = saves.map(save => {
+        const date = new Date(save.timestamp).toLocaleString();
+        const isMulti = save.mode === 'multi';
+        return `
+          <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-surface-dark/40 p-4 transition hover:bg-surface-dark/60">
+            <div class="flex flex-col gap-1">
+              <h3 class="font-bold text-white">${save.title}</h3>
+              <p class="text-xs text-text-secondary">${date} · ${save.model} ${isMulti ? '· 멀티' : ''}</p>
+            </div>
+            <div class="flex gap-2">
+              <button data-action="load" data-id="${save.id}" onclick="loadGame('${save.id}')" class="rounded-lg bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary hover:text-white">불러오기</button>
+              ${isMulti ? `<button data-action="load-multi" data-id="${save.id}" onclick="loadGameMulti('${save.id}')" class="rounded-lg bg-purple-600/30 px-3 py-1.5 text-xs font-semibold text-purple-300 transition hover:bg-purple-600 hover:text-white">멀티로 복원</button>` : ''}
+              <button data-action="delete" data-id="${save.id}" onclick="deleteGame('${save.id}')" class="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-rose-400 transition hover:border-rose-400 hover:bg-rose-400/10">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // 전역 함수로 노출 (HTML onclick에서 접근 가능하도록)
+      window.loadGame = (id) => {
+        const save = saves.find(s => s.id === id);
+        if (save) restoreGame(save);
+      };
+      
+      window.deleteGame = async (id) => {
+        if(!confirm("정말 삭제하시겠습니까?")) return;
+        try {
+          const res = await apiDeleteSave(id);
+          renderSaveList(res.saves);
+        } catch(e) {
+          alert("삭제 실패: " + e.message);
+        }
+      };
+      
+      window.loadGameMulti = (id) => {
+        const save = saves.find(s => s.id === id);
+        if (save) restoreGameMultiplayer(save);
+      };
+      
+      // 안전한 이벤트 위임 (CSP/inline 차단 대비)
+      Array.from(saveList.querySelectorAll('button[data-action="load"]')).forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          window.loadGame(id);
+        });
+      });
+      Array.from(saveList.querySelectorAll('button[data-action="load-multi"]')).forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          window.loadGameMulti(id);
+        });
+      });
+      Array.from(saveList.querySelectorAll('button[data-action="delete"]')).forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          await window.deleteGame(id);
+        });
+      });
+    }
+
+    function restoreGame(save) {
+      // 상태 복원
+      state.saveId = save.id;
+      state.provider = save.provider;
+      state.model = save.model;
+      state.history = save.history || [];
+      state.currentScenario = save.currentScenario;
+      state.playerCount = save.playerCount;
+      state.characters = save.characters;
+      state.mode = save.mode || 'solo';
+      
+      // UI 복원
+      if (connectedProvider) connectedProvider.textContent = state.provider === "gemini" ? "Gemini" : "OpenAI";
+      if (connectedModel) connectedModel.textContent = state.model;
+      
+      // 채팅 로그 복원
+      if (save.chatHtml) {
+        chatLog.innerHTML = save.chatHtml;
+        chatLog.scrollTop = chatLog.scrollHeight;
+      } else {
+        // chatHtml이 없는 구버전 호환용 (history 기반 재구성 - 텍스트만)
+        chatLog.innerHTML = "";
+        state.history.forEach(msg => {
+          if (msg.role !== 'system') {
+            appendChat(msg.role, msg.content);
+          }
+        });
+      }
+
+      // 화면 전환
+      pageSaves.classList.add("hidden");
+      pageCharacter.classList.add("hidden");
+      pageLobby.classList.add("hidden");
+      pageGame.classList.remove("hidden");
+      btnSaveGame.classList.remove("hidden");
+      
+      // 주사위/시나리오 패널 상태 (게임 중이므로 주사위 패널 표시)
+      showDicePanel(); 
+      setStatus("게임을 불러왔습니다.");
+    }
+
+    function restoreGameMultiplayer(save) {
+      // 저장 데이터에서 멀티로 복원 준비
+      state.saveId = save.id;
+      state.provider = save.provider;
+      state.model = save.model;
+      state.history = save.history || [];
+      state.currentScenario = save.currentScenario;
+      state.playerCount = save.playerCount;
+      state.characters = []; // 멀티에선 개별 캐릭터는 players에서 관리
+      state.mode = 'multi';
+      state.restoringMultiSave = true;
+      state.restorePlayers = (save.characters || []).map((c) => ({
+        name: c?.name || "플레이어",
+        character: c
+      }));
+      state.restoreChatHtml = save.chatHtml || "";
+
+      if (connectedProvider) connectedProvider.textContent = state.provider === "gemini" ? "Gemini" : "OpenAI";
+      if (connectedModel) connectedModel.textContent = state.model;
+
+      pageSaves.classList.add("hidden");
+      pageMultiplayer.classList.remove("hidden");
+      multiNickname.value = state.restorePlayers[0]?.name || "호스트";
+      setStatus("멀티플레이 복원: 방을 생성하면 대기실에 저장된 파티가 불러와집니다.");
+    }
+    // --- End Save Logic ---
+
+    function pickScenario() {
+      const index = Math.floor(Math.random() * scenarioPool.length);
+      return scenarioPool[index];
+    }
+
+    function setScenario(text) {
+      state.currentScenario = text;
+      scenarioDisplay.textContent = text;
+    }
+
+    function setStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.className = `text-xs ${isError ? "text-rose-300" : "text-slate-400"}`;
+    }
+
+    function getLastAssistantContent() {
+      for (let i = state.history.length - 1; i >= 0; i--) {
+        const m = state.history[i];
+        if (m && m.role === "assistant" && typeof m.content === "string") {
+          return m.content;
+        }
+      }
+      return "";
+    }
+
+    function detectTargetFromText(text) {
+      if (!text) return null;
+      const m1 = text.match(/목표\s*(\d+)/i);
+      if (m1 && m1[1]) return Number(m1[1]);
+      const m2 = text.match(/DC\s*(\d+)/i);
+      if (m2 && m2[1]) return Number(m2[1]);
+      const kwEasy = /(쉬움|간단|간편|사소)/i;
+      const kwStd = /(보통|표준)/i;
+      const kwHard = /(어려움|위험|복잡|강행|난관)/i;
+      const kwDeadly = /(치명|절망|극난)/i;
+      if (kwDeadly.test(text)) return 11;
+      if (kwHard.test(text)) return 10;
+      if (kwStd.test(text)) return 8;
+      if (kwEasy.test(text)) return 6;
+      return null;
+    }
+
+    function mapTargetToKey(t) {
+      if (t == null) return "standard";
+      if (t <= 6) return "easy";
+      if (t <= 8) return "standard";
+      if (t <= 10) return "hard";
+      return "deadly";
+    }
+
+    function autoDetermineDifficulty(content) {
+      const assistant = getLastAssistantContent();
+      let target = detectTargetFromText(assistant);
+      if (target == null) {
+        target = detectTargetFromText(content);
+      }
+      const key = mapTargetToKey(target);
+      const info = difficultyTargets[key] || difficultyTargets.standard;
+      const reason = target != null ? `최근 선택지 기준 목표 ${target}` : "기본 추정";
+      return { key, info, target: target ?? info.target, reason };
+    }
+
+
+    const MAX_CHARACTERS = 4;
+
+    function setCharacterStatus(message, isError = false) {
+      if (!characterStatus) return;
+      characterStatus.textContent = message;
+      characterStatus.className = `text-sm ${isError ? "text-rose-200" : "text-slate-200"}`;
+    }
+
+    function clampCharacterCount(value) {
+      return Math.min(MAX_CHARACTERS, Math.max(1, value));
+    }
+
+    function createCharacterCard(index) {
+      const baseId = `char-${index}`;
+      const label = `플레이어 ${index + 1}`;
+      return `
+        <div class="rounded-3xl border border-white/15 bg-slate-950/60 p-5">
+          <div class="mb-4 flex items-center justify-between">
+            <p class="text-sm font-semibold text-emerald-300">${label}</p>
+            <span class="text-xs text-slate-400">동료와 입장 순서를 맞춰 주세요</span>
+          </div>
+          <div class="flex flex-col gap-4">
+            <div class="grid gap-3 md:grid-cols-2">
+              <label class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium">캐릭터 이름</span>
+                <div class="relative">
+                  <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-slate-400">robot_2</span>
+                  <input id="${baseId}-name" type="text" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none" placeholder="예: 린 아르카나" />
+                </div>
+              </label>
+              <label class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium">성별</span>
+                <div class="relative">
+                  <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-slate-400">transgender</span>
+                  <select id="${baseId}-gender" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white focus:border-emerald-400 focus:outline-none">
+                    <option value="">선택하세요</option>
+                    <option value="남성">남성</option>
+                    <option value="여성">여성</option>
+                  </select>
+                </div>
+              </label>
+              <label class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium">종족</span>
+                <div class="relative">
+                  <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-slate-400">groups</span>
+                  <select id="${baseId}-race" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white focus:border-emerald-400 focus:outline-none">
+                    <option value="">선택하세요</option>
+                    <option value="휴먼">휴먼</option>
+                    <option value="엘프">엘프</option>
+                    <option value="드워프">드워프</option>
+                    <option value="하플링">하플링</option>
+                    <option value="티플링">티플링</option>
+                    <option value="반엘프">반엘프</option>
+                    <option value="기타">기타</option>
+                  </select>
+                </div>
+              </label>
+            </div>
+            <div class="grid gap-3 md:grid-cols-2">
+              <label class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium">나이</span>
+                <div class="relative">
+                  <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-slate-400">cake</span>
+                  <input id="${baseId}-age" type="number" min="8" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none" placeholder="숫자로 입력" />
+                </div>
+              </label>
+            </div>
+            <label class="flex flex-col gap-1.5">
+              <span class="text-sm font-medium">전투 역할 / 클래스</span>
+              <div class="relative">
+                <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-slate-400">swords</span>
+                <select id="${baseId}-role" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white focus:border-emerald-400 focus:outline-none">
+                  <option value="">선택하세요</option>
+                  <option value="파이터">파이터</option>
+                  <option value="위저드">위저드</option>
+                  <option value="로그">로그</option>
+                  <option value="클레릭">클레릭</option>
+                  <option value="바드">바드</option>
+                  <option value="드루이드">드루이드</option>
+                  <option value="기타">기타</option>
+                </select>
+              </div>
+            </label>
+            <label class="flex flex-col gap-1.5">
+              <span class="text-sm font-medium">출신과 배경</span>
+              <div class="relative">
+                <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-slate-400">map</span>
+                <textarea id="${baseId}-origin" rows="3" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none" placeholder="예: 황무지 유목민 출신, 사라진 부족을 되찾기 위해 여행 중."></textarea>
+              </div>
+            </label>
+            <label class="flex flex-col gap-1.5">
+              <span class="text-sm font-medium">주요 성격 & 가치관</span>
+              <div class="relative">
+                <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-slate-400">psychiatry</span>
+                <textarea id="${baseId}-traits" rows="3" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none" placeholder="예: 과감하지만 동료에게 헌신적, 정의감 넘침."></textarea>
+              </div>
+            </label>
+          </div>
+        </div>
+      `;
+    }
+
+    function captureCharacterDrafts() {
+      const drafts = [];
+      const rendered = Number(characterFormsWrapper?.dataset?.count) || 0;
+      for (let i = 0; i < rendered; i++) {
+        drafts.push({
+          name: document.getElementById(`char-${i}-name`)?.value || "",
+          gender: document.getElementById(`char-${i}-gender`)?.value || "",
+          race: document.getElementById(`char-${i}-race`)?.value || "",
+          age: document.getElementById(`char-${i}-age`)?.value || "",
+          role: document.getElementById(`char-${i}-role`)?.value || "",
+          origin: document.getElementById(`char-${i}-origin`)?.value || "",
+          traits: document.getElementById(`char-${i}-traits`)?.value || "",
+        });
+      }
+      return drafts;
+    }
+
+    function applyCharacterDrafts(drafts) {
+      drafts.forEach((draft, index) => {
+        const map = {
+          name: `char-${index}-name`,
+          gender: `char-${index}-gender`,
+          race: `char-${index}-race`,
+          age: `char-${index}-age`,
+          role: `char-${index}-role`,
+          origin: `char-${index}-origin`,
+          traits: `char-${index}-traits`,
+        };
+        Object.entries(map).forEach(([key, id]) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.value = draft?.[key] || "";
+        });
+      });
+    }
+
+    function renderCharacterForms(count) {
+      if (!characterFormsWrapper) return;
+      const drafts = captureCharacterDrafts();
+      const safeCount = clampCharacterCount(Number(count) || 1);
+      const cards = [];
+      for (let i = 0; i < safeCount; i++) {
+        cards.push(createCharacterCard(i));
+      }
+      characterFormsWrapper.innerHTML = cards.join("");
+      characterFormsWrapper.dataset.count = String(safeCount);
+      characterCountInput.value = safeCount;
+      applyCharacterDrafts(drafts);
+    }
+
+    function showScenarioPanel() {
+      scenarioPanel?.classList.remove("hidden");
+      dicePanel?.classList.add("hidden");
+    }
+
+    function showDicePanel() {
+      scenarioPanel?.classList.add("hidden");
+      dicePanel?.classList.remove("hidden");
+    }
+
+    function enterCompactMode() {
+      // 좌측 패널 전체를 숨기고 중앙 텍스트 영역을 확장 (우측 주사위 패널은 유지)
+      document.getElementById('left-aside')?.classList.add('hidden');
+      scenarioPanel?.classList.add('hidden');
+    }
+
+    function updateControlLocks() {
+      sendBtn.disabled = state.isBusy;
+      playerInput.disabled = state.isBusy;
+      playerInput.classList.toggle("opacity-60", state.isBusy);
+      playerInput.classList.toggle("cursor-not-allowed", state.isBusy);
+      startBtn.disabled = state.isBusy;
+      rerollScenarioBtn.disabled = state.isBusy;
+    }
+
+    function setBusyState(value) {
+      state.isBusy = value;
+      updateControlLocks();
+    }
+
+    function requireApiContext() {
+      if (!state.apiKey) {
+        throw new Error("먼저 Gemini/OpenAI API 키를 등록하세요.");
+      }
+      return state.apiKey;
+    }
+
+    function requireModel() {
+      if (!state.model) {
+        throw new Error("사용 가능한 모델을 먼저 선택하세요.");
+      }
+      return state.model;
+    }
+
+    function getSystemPrompt(playerCount) {
+      return `당신은 던전 앤 드래곤 5판 규칙을 따르는 AI 게임 마스터입니다.
+플레이어는 총 ${playerCount}명이며, 능력치 판정과 공격/세이브 굴림 결과(고정 d6)를 기반으로 서술하세요.
+각 장면마다 예상 DC, 판정 근거, 다음 행동 선택지 2~3가지를 한국어로 제안하십시오.`;
+    }
+
+    function buildCharacterSummary(characters) {
+      if (!Array.isArray(characters) || !characters.length) return "";
+      return characters
+        .map((character, index) => {
+          const segments = [
+            `플레이어 ${index + 1}`,
+            character.name ? `이름: ${character.name}` : "",
+            character.gender ? `성별: ${character.gender}` : "",
+            character.race ? `종족: ${character.race}` : "",
+            character.age ? `나이: ${character.age}` : "",
+            character.role ? `역할/클래스: ${character.role}` : "",
+            character.origin ? `출신/배경: ${character.origin}` : "",
+            character.traits ? `성격/가치관: ${character.traits}` : "",
+          ].filter(Boolean);
+          return segments.join("\n");
+        })
+        .join("\n\n");
+    }
+
+    function collectCharacterData() {
+      const desiredCount = clampCharacterCount(Number(characterCountInput.value) || 1);
+      const characters = [];
+      for (let i = 0; i < desiredCount; i++) {
+        const prefix = `char-${i}`;
+        const name = document.getElementById(`${prefix}-name`)?.value.trim() || "";
+        const gender = document.getElementById(`${prefix}-gender`)?.value || "";
+        const race = document.getElementById(`${prefix}-race`)?.value || "";
+        const age = document.getElementById(`${prefix}-age`)?.value.trim() || "";
+        const role = document.getElementById(`${prefix}-role`)?.value || "";
+        const origin = document.getElementById(`${prefix}-origin`)?.value.trim() || "";
+        const traits = document.getElementById(`${prefix}-traits`)?.value.trim() || "";
+
+        if (!name) {
+          throw new Error(`플레이어 ${i + 1}의 이름을 입력하세요.`);
+        }
+        if (gender !== "남성" && gender !== "여성") {
+          throw new Error(`플레이어 ${i + 1}의 성별은 남성 또는 여성만 선택할 수 있습니다.`);
+        }
+        if (!race) {
+          throw new Error(`플레이어 ${i + 1}의 종족을 선택하세요.`);
+        }
+
+        if (!role) {
+          throw new Error(`플레이어 ${i + 1}의 전투 역할/클래스를 선택하세요.`);
+        }
+        if (!origin) {
+          throw new Error(`플레이어 ${i + 1}의 출신과 배경을 작성하세요.`);
+        }
+
+        characters.push({
+          name,
+          gender,
+          race,
+          age,
+          role,
+          origin,
+          traits,
+        });
+      }
+      return characters;
+    }
+
+    function resetCharacterForm() {
+      characterCountInput.value = "1";
+      renderCharacterForms(1);
+      setCharacterStatus("필수 항목을 채우고 캐릭터를 저장하세요.");
+      showScenarioPanel();
+    }
+
+    function appendChat(role, text) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "flex gap-3";
+      const avatar = document.createElement("div");
+      avatar.className = `mt-1 h-8 w-8 flex-shrink-0 rounded-full border border-slate-800 flex items-center justify-center ${role === "user" ? "bg-emerald-500/20" : "bg-slate-800/80"}`;
+      avatar.textContent = role === "user" ? "플" : "GM";
+      const bubble = document.createElement("div");
+      bubble.className = "rich-text flex-1 rounded-3xl border border-slate-800/80 bg-slate-900/80 px-5 py-4 text-base";
+      bubble.textContent = role === "assistant" ? `GM: ${text}` : text;
+      wrapper.appendChild(avatar);
+      wrapper.appendChild(bubble);
+      chatLog.appendChild(wrapper);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function logDiceResult(roll) {
+      const difficultyInfo = difficultyTargets[roll.difficulty] || difficultyTargets.standard;
+      const outcome = roll.total >= difficultyInfo.target ? "성공" : "실패";
+      const item = document.createElement("li");
+      const timestamp = new Date().toLocaleTimeString();
+      item.textContent = `[${timestamp}] ${difficultyInfo.label} | ${roll.first} + ${roll.second} = ${roll.total} → ${outcome}`;
+      diceLog.prepend(item);
+      while (diceLog.children.length > 10) {
+        diceLog.removeChild(diceLog.lastChild);
+      }
+      if (diceSummary) {
+        diceSummary.textContent = `마지막 판정 · ${difficultyInfo.label} (목표 ${difficultyInfo.target}) | ${roll.first} + ${roll.second} = ${roll.total} → ${outcome}`;
+      }
+    }
+
+    function rollDiceWithAnimation(difficultyKey = "standard") {
+      return new Promise((resolve) => {
+        if (state.diceTimer) {
+          clearInterval(state.diceTimer);
+          state.diceTimer = null;
+        }
+        let frame = 0;
+        const animation = setInterval(() => {
+          const faceA = diceFaces[frame % diceFaces.length];
+          const faceB = diceFaces[(frame + 2) % diceFaces.length];
+          if (diceVisualA) diceVisualA.textContent = faceA;
+          if (diceVisualB) diceVisualB.textContent = faceB;
+          frame += 1;
+        }, 90);
+        state.diceTimer = animation;
+        setStatus("주사위가 굴러가는 중입니다...");
+        setTimeout(() => {
+          clearInterval(animation);
+          state.diceTimer = null;
+          const first = Math.floor(Math.random() * 6) + 1;
+          const second = Math.floor(Math.random() * 6) + 1;
+          const total = first + second;
+          if (diceVisualA) diceVisualA.textContent = diceFaces[first - 1];
+          if (diceVisualB) diceVisualB.textContent = diceFaces[second - 1];
+          const roll = { first, second, total, difficulty: difficultyKey };
+          logDiceResult(roll);
+          setStatus("주사위 결과가 기록되었습니다.");
+          resolve(roll);
+        }, 900);
+      });
+    }
+
+    function makeGeminiBody(messages) {
+      const contents = [];
+      const systemParts = [];
+      messages.forEach((msg) => {
+        if (msg.role === "system") {
+          systemParts.push(msg.content);
+          return;
+        }
+        contents.push({
+          role: msg.role === "assistant" ? "model" : "user",
+          parts: [{ text: msg.content }],
+        });
+      });
+      if (systemParts.length) {
+        contents.unshift({
+          role: "user",
+          parts: [{ text: `게임 마스터 지침:\n${systemParts.join("\n")}` }],
+        });
+      }
+      return { contents };
+    }
+
+    async function requestOpenAI(messages, model, apiKey) {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ model, messages, temperature: 0.9 }),
+      });
+      if (!response.ok) {
+        throw new Error(`OpenAI 오류: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content?.trim() || "응답이 없습니다.";
+    }
+
+    const GEMINI_VERSION_PATH = "v1beta";
+
+    async function listGeminiModels(apiKey) {
+      const response = await fetch(`https://generativelanguage.googleapis.com/${GEMINI_VERSION_PATH}/models?key=${apiKey}`);
+      const raw = await response.text();
+      if (!response.ok) {
+        throw new Error(`모델 목록을 불러올 수 없습니다: ${raw}`);
+      }
+      const data = JSON.parse(raw);
+      return (data.models || [])
+        .map((model) => model.name?.replace(/^models\//, ""))
+        .filter(Boolean);
+    }
+
+    async function requestGemini(messages, model, apiKey) {
+      const response = await fetch(`https://generativelanguage.googleapis.com/${GEMINI_VERSION_PATH}/models/${encodeURIComponent(model)}:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...makeGeminiBody(messages),
+          generationConfig: { temperature: 0.9 },
+        }),
+      });
+      const rawText = await response.text();
+      if (!response.ok) {
+        throw new Error(`Gemini 오류 ${response.status}: ${rawText}`);
+      }
+      const data = JSON.parse(rawText);
+      const parts = data.candidates?.[0]?.content?.parts || [];
+      return parts.map((part) => part.text || "").join("").trim() || "응답이 없습니다.";
+    }
+
+    async function sendToModel(userText) {
+      const apiKey = requireApiContext();
+      const model = requireModel();
+      const provider = state.provider;
+      const payloadMessages = [...state.history, { role: "user", content: userText }];
+
+      setBusyState(true);
+      setStatus("GM이 답변을 준비 중입니다...");
+
+      try {
+        const reply = provider === "gemini"
+          ? await requestGemini(payloadMessages, model, apiKey)
+          : await requestOpenAI(payloadMessages, model, apiKey);
+
+        state.history = [...payloadMessages, { role: "assistant", content: reply }];
+        appendChat("assistant", reply);
+        setStatus("턴이 종료되었습니다. 다음 행동을 입력하세요.");
+      } catch (error) {
+        console.error(error);
+        setStatus(error.message, true);
+      } finally {
+        setBusyState(false);
+      }
+    }
+
+    function startSession(autoRoll = false) {
+      try {
+        requireApiContext();
+        requireModel();
+      } catch (error) {
+        setStatus(error.message, true);
+        return;
+      }
+
+      if (!state.characters.length) {
+        setStatus("캐릭터 정보를 먼저 저장하세요.", true);
+        return;
+      }
+
+      const scenario = state.currentScenario || pickScenario();
+      const playerCount = Math.min(6, Math.max(1, state.characters.length || 1));
+      state.playerCount = playerCount;
+      const characterSummary = buildCharacterSummary(state.characters);
+
+      chatLog.innerHTML = "";
+      const systemPrompt = getSystemPrompt(playerCount);
+      state.history = [{ role: "system", content: systemPrompt }];
+      if (characterSummary) {
+        state.history.push({ role: "user", content: `플레이어 캐릭터 정보:\n${characterSummary}` });
+        appendChat("user", `캐릭터 프로필\n${characterSummary}`);
+      }
+      state.history.push({ role: "user", content: `게임에 사용할 시나리오:\n${scenario}` });
+
+      const opening = `플레이어 ${playerCount}명 기준으로 아래 시나리오와 캐릭터 정보를 반영해 첫 장면을 전개해 주세요.\n${scenario}`;
+      appendChat("user", opening);
+      playerInput.value = "";
+      setStatus("게임이 시작되었습니다. 첫 장면을 불러오는 중...");
+      sendToModel("위 캐릭터와 시나리오를 기준으로 게임을 시작하고 첫 장면과 선택지를 제시하세요.");
+
+      // 준비해 둘 다음 랜덤 시나리오
+      setScenario(pickScenario());
+      enterCompactMode();
+      if (autoRoll) {
+        rollDiceWithAnimation("standard");
+      }
+    }
+
+    enterBtn.addEventListener("click", async () => {
+      const provider = setupProvider.value;
+      const apiKey = setupApiKey.value.trim();
+      if (!apiKey) {
+        setupStatus.textContent = "API 키를 입력하세요.";
+        setupStatus.className = "text-xs text-rose-300";
+        return;
+      }
+      enterBtn.disabled = true;
+      setupStatus.textContent = "키를 확인하는 중...";
+      setupStatus.className = "text-xs text-slate-300";
+      let resolvedModel = provider === "gemini" ? "gemini-1.5-flash" : "gpt-4o-mini";
+      if (provider === "gemini") {
+        try {
+          const models = await listGeminiModels(apiKey);
+          if (models.length) {
+            const preferred = models.find((name) => name.includes("1.5"));
+            resolvedModel = preferred || models[0];
+          }
+          setupStatus.textContent = `모델 ${resolvedModel}이(가) 사용 가능합니다.`;
+          setupStatus.className = "text-xs text-emerald-300";
+        } catch (error) {
+          console.error(error);
+          setupStatus.textContent = error.message;
+          setupStatus.className = "text-xs text-rose-300";
+          enterBtn.disabled = false;
+          return;
+        }
+      } else {
+        setupStatus.textContent = "키가 저장되었습니다.";
+        setupStatus.className = "text-xs text-emerald-300";
+      }
+      state.provider = provider;
+      state.apiKey = apiKey;
+      state.model = resolvedModel;
+      if (connectedProvider) connectedProvider.textContent = provider === "gemini" ? "Gemini" : "OpenAI";
+      if (connectedModel) connectedModel.textContent = resolvedModel;
+      setupApiKey.value = "";
+      // API 키가 확인되면 항상 모험 기록으로 이동
+      let savesData = { saves: [] };
+      try {
+        savesData = await apiLogin(apiKey);
+      } catch (e) {
+        console.error("Login/Load error:", e);
+      }
+      pageKey.classList.add("hidden");
+      pageLobby.classList.add("hidden");
+      pageCharacter.classList.add("hidden");
+      pageGame.classList.add("hidden");
+      pageSaves.classList.remove("hidden");
+      renderSaveList(savesData?.saves || []);
+      enterBtn.disabled = false;
+    });
+
+    // btnNewGame listener removed (replaced by Lobby flow)
+
+
+    btnBackToKey.addEventListener("click", () => {
+      pageSaves.classList.add("hidden");
+      pageKey.classList.remove("hidden");
+      state.apiKey = "";
+      setupApiKey.value = "";
+    });
+    
+    btnSaveGame.addEventListener("click", apiSaveGame);
+
+    saveCharacterBtn.addEventListener("click", () => {
+      try {
+        const characters = collectCharacterData();
+        state.characters = characters;
+
+        if (state.mode === 'multi') {
+            socket.emit('update_character', { code: state.roomCode, character: characters[0] });
+            pageCharacter.classList.add("hidden");
+            pageWaitingRoom.classList.remove("hidden");
+            return;
+        }
+
+        state.playerCount = characters.length;
+        setCharacterStatus("캐릭터가 저장되었습니다. 시나리오를 선택해 주세요.");
+        pageCharacter.classList.add("hidden");
+        pageGame.classList.remove("hidden");
+        btnSaveGame.classList.remove("hidden"); // 저장 버튼 표시
+        setStatus("랜덤 시나리오를 확인하고 '시작'을 누르세요.");
+      } catch (error) {
+        setCharacterStatus(error.message, true);
+      }
+    });
+
+    const handleCharacterCountInput = () => {
+      const desired = clampCharacterCount(Number(characterCountInput.value) || 1);
+      renderCharacterForms(desired);
+      setCharacterStatus("필수 항목을 채우고 캐릭터를 저장하세요.");
+    };
+
+    characterCountInput.addEventListener("change", handleCharacterCountInput);
+    characterCountInput.addEventListener("input", handleCharacterCountInput);
+
+    startBtn.addEventListener("click", () => startSession(true));
+    rerollScenarioBtn.addEventListener("click", () => {
+      setScenario(pickScenario());
+      setStatus("시나리오를 새로 뽑았습니다. 마음에 들면 시작하세요.");
+    });
+    prepNewScenarioBtn?.addEventListener("click", () => {
+      showScenarioPanel();
+      setScenario(pickScenario());
+      setStatus("새 시나리오가 준비되었습니다. 확인 후 '게임 시작'을 누르세요.");
+    });
+
+    sendBtn.addEventListener("click", async () => {
+      if (state.isBusy || state.diceTimer) return;
+      const content = playerInput.value.trim();
+      if (!content) {
+        setStatus("행동 또는 주사위 판정 내용을 입력하세요.", true);
+        return;
+      }
+      const auto = autoDetermineDifficulty(content);
+      const difficultyKey = auto.key;
+      const roll = await rollDiceWithAnimation(difficultyKey).catch(() => ({
+        first: 1,
+        second: 1,
+        total: 2,
+        difficulty: difficultyKey
+      }));
+      const info = auto.info;
+      const target = auto.target;
+      const outcome = roll.total >= target ? "성공" : "실패";
+      const diceNote = `\n\n[자동 판정]\n난이도 ${info.label} (목표 ${target})\n주사위: ${roll.first} + ${roll.second} = ${roll.total} → ${outcome}`;
+      const fullMessage = `${content}${diceNote}`;
+
+      playerInput.value = "";
+
+      if (state.mode === 'multi') {
+          // Check turn
+          const currentPlayer = state.players[state.turnIndex];
+          if (currentPlayer && currentPlayer.sid !== socket.id) {
+              alert("당신의 턴이 아닙니다!");
+              return;
+          }
+          socket.emit('send_action', { 
+              code: state.roomCode, 
+              content: fullMessage, 
+              sender: state.nickname 
+          });
+      } else {
+          appendChat("user", fullMessage);
+          sendToModel(fullMessage);
+      }
+    });
+
+    playerInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendBtn.click();
+      }
+    });
+
+    // --- Multiplayer Navigation & Logic ---
+
+    const btnCreateCharacterMulti = document.getElementById("btn-create-character-multi");
+
+    // Lobby Navigation
+    if(btnToLobby) {
+        btnToLobby.addEventListener("click", () => {
+            pageSaves.classList.add("hidden");
+            pageLobby.classList.remove("hidden");
+        });
+    }
+
+    if(btnBackToSaves) {
+        btnBackToSaves.addEventListener("click", () => {
+            pageLobby.classList.add("hidden");
+            pageSaves.classList.remove("hidden");
+        });
+    }
+
+    btnModeSolo.addEventListener("click", () => {
+        state.mode = 'solo';
+        pageLobby.classList.add("hidden");
+        pageCharacter.classList.remove("hidden");
+        state.saveId = null;
+        state.characters = [];
+        resetCharacterForm();
+        // Solo mode character count enabled
+        characterCountInput.disabled = false; 
+    });
+
+    btnModeMulti.addEventListener("click", () => {
+        state.mode = 'multi';
+        pageLobby.classList.add("hidden");
+        pageMultiplayer.classList.remove("hidden");
+    });
+
+    btnBackToLobby.addEventListener("click", () => {
+        pageMultiplayer.classList.add("hidden");
+        pageLobby.classList.remove("hidden");
+    });
+
+    // Room Creation / Joining
+    btnCreateRoom.addEventListener("click", () => {
+        const name = multiNickname.value.trim() || "익명";
+        state.nickname = name;
+        socket.emit('create_room', { name });
+    });
+
+    btnJoinRoom.addEventListener("click", () => {
+        const name = multiNickname.value.trim() || "익명";
+        const code = roomCodeInput.value.trim().toUpperCase();
+        if (!code) {
+            alert("방 코드를 입력하세요.");
+            return;
+        }
+        state.nickname = name;
+        state.roomCode = code; // Optimistically set code
+        socket.emit('join_room', { code, name });
+    });
+
+    btnLeaveRoom.addEventListener("click", () => {
+        socket.emit('disconnect'); 
+        location.reload(); 
+    });
+
+    // Waiting Room Logic
+    if (btnCreateCharacterMulti) {
+        btnCreateCharacterMulti.addEventListener("click", () => {
+            pageWaitingRoom.classList.add("hidden");
+            pageCharacter.classList.remove("hidden");
+            // Force 1 player for self in multiplayer
+            characterCountInput.value = 1;
+            characterCountInput.disabled = true;
+            renderCharacterForms(1);
+            setCharacterStatus("캐릭터를 생성하고 저장하면 대기실로 돌아갑니다.");
+        });
+    }
+
+    // Start Game (Host)
+    btnStartMultiGame.addEventListener("click", () => {
+        if(!state.isHost) return;
+        socket.emit('start_game', { code: state.roomCode });
+    });
+
+    // --- Socket Events ---
+
+    socket.on('room_created', (data) => {
+        state.roomCode = data.code;
+        state.isHost = true;
+        state.players = data.players;
+        enterWaitingRoom();
+        if (state.restoringMultiSave) {
+            const restored = state.restorePlayers.map(p => ({
+                name: p.name,
+                character: p.character
+            }));
+            socket.emit('restore_room', { 
+                code: state.roomCode, 
+                players: restored, 
+                turn_index: 0, 
+                chat_html: state.restoreChatHtml,
+                start_playing: false
+            });
+            state.restoringMultiSave = false;
+        }
+    });
+
+    socket.on('player_joined', (data) => {
+        // If I am the one who joined, I need to know.
+        const me = data.players.find(p => p.sid === socket.id);
+        if (me) {
+             state.isHost = false; 
+             enterWaitingRoom();
+        }
+        state.players = data.players;
+        renderPlayerList();
+    });
+
+    socket.on('player_updated', (data) => {
+        state.players = data.players;
+        renderPlayerList();
+    });
+
+    socket.on('player_left', (data) => {
+        state.players = data.players;
+        renderPlayerList();
+        if (state.players.length > 0 && state.players[0].sid === socket.id) {
+            state.isHost = true;
+            hostControls.classList.remove("hidden");
+            if (!pageGame.classList.contains("hidden")) {
+                btnSaveGame.classList.remove("hidden");
+            }
+        }
+    });
+
+    socket.on('sync_history', (data) => {
+        const html = data?.chat_html || "";
+        if (html) {
+            chatLog.innerHTML = html;
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+    });
+
+    socket.on('game_started', (data) => {
+        state.turnIndex = data.turn_index;
+        pageWaitingRoom.classList.add("hidden");
+        pageGame.classList.remove("hidden");
+        
+        enterCompactMode();
+        updateControlLocks();
+        setStatus("멀티플레이 게임이 시작되었습니다!");
+        
+        if (state.isHost) {
+            startMultiplayerSession();
+            btnSaveGame.classList.remove("hidden");
+        } else {
+            btnSaveGame.classList.add("hidden");
+        }
+    });
+    
+    socket.on('new_message', (data) => {
+        appendChat(data.sender === "GM" ? "assistant" : "user", data.content);
+        if (data.type === 'user' && state.isHost) {
+             handleMultiplayerGM(data.content, data.sender);
+        }
+    });
+    
+    socket.on('turn_changed', (data) => {
+        state.turnIndex = data.turn_index;
+        const currentPlayer = state.players[state.turnIndex];
+        const isMyTurn = currentPlayer.sid === socket.id;
+        
+        setStatus(isMyTurn ? "당신의 턴입니다!" : `${currentPlayer.name}의 턴입니다.`);
+        playerInput.disabled = !isMyTurn;
+        sendBtn.disabled = !isMyTurn;
+    });
+
+    socket.on('error', (data) => {
+        alert(data.message);
+        if (state.mode === 'multi' && !state.players.length) {
+            state.roomCode = null;
+        }
+    });
+
+    // Helper Functions
+    function enterWaitingRoom() {
+        pageMultiplayer.classList.add("hidden");
+        pageWaitingRoom.classList.remove("hidden");
+        displayRoomCode.textContent = state.roomCode;
+        renderPlayerList();
+        
+        if (state.isHost) {
+            hostControls.classList.remove("hidden");
+        } else {
+            hostControls.classList.add("hidden");
+        }
+    }
+
+    function renderPlayerList() {
+        playerList.innerHTML = state.players.map(p => {
+            const isMe = p.sid === socket.id;
+            return `
+            <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-surface-dark/40 p-4">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center font-bold text-white">
+                        ${p.name[0]}
+                    </div>
+                    <div>
+                        <p class="font-bold text-white">${p.name} ${isMe ? "(나)" : ""}</p>
+                        <p class="text-xs text-text-secondary">${p.character ? p.character.name : "캐릭터 생성 중..."}</p>
+                    </div>
+                </div>
+                <div class="px-3 py-1 rounded-full text-xs font-semibold ${p.is_ready ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-500/20 text-slate-400"}">
+                    ${p.is_ready ? "준비됨" : "대기중"}
+                </div>
+            </div>
+            `;
+        }).join("");
+        
+        if (state.isHost) {
+            const allReady = state.players.every(p => p.is_ready);
+            btnStartMultiGame.disabled = !allReady;
+            btnStartMultiGame.classList.toggle("opacity-50", !allReady);
+            btnStartMultiGame.classList.toggle("cursor-not-allowed", !allReady);
+        }
+    }
+    
+    async function startMultiplayerSession() {
+        const scenario = state.currentScenario || pickScenario();
+        
+        const allChars = state.players.map(p => p.character).filter(Boolean);
+        const characterSummary = buildCharacterSummary(allChars);
+        
+        state.history = [{ role: "system", content: getSystemPrompt(state.players.length) }];
+        state.history.push({ role: "user", content: `플레이어 캐릭터 정보:\n${characterSummary}` });
+        state.history.push({ role: "user", content: `게임에 사용할 시나리오:\n${scenario}` });
+        
+        const opening = `플레이어 ${state.players.length}명 기준으로 아래 시나리오와 캐릭터 정보를 반영해 첫 장면을 전개해 주세요.\n${scenario}`;
+        
+        socket.emit('gm_response', { code: state.roomCode, content: `[게임 시작]\n${scenario}\n\nGM이 오프닝을 작성 중입니다...` });
+        
+        handleMultiplayerGM(opening, "System");
+    }
+    
+    async function handleMultiplayerGM(userText, senderName) {
+        const apiKey = state.apiKey;
+        const model = state.model;
+        
+        const payloadMessages = [...state.history];
+        if (senderName !== "System") {
+             payloadMessages.push({ role: "user", content: `${senderName}: ${userText}` });
+        } else {
+             payloadMessages.push({ role: "user", content: userText });
+        }
+
+        // setBusyState(true); // Don't block UI for Host in multi
+        
+        try {
+            const provider = state.provider;
+            const reply = provider === "gemini"
+              ? await requestGemini(payloadMessages, model, apiKey)
+              : await requestOpenAI(payloadMessages, model, apiKey);
+            
+            state.history = [...payloadMessages, { role: "assistant", content: reply }];
+            
+            socket.emit('gm_response', { code: state.roomCode, content: reply });
+            socket.emit('next_turn', { code: state.roomCode });
+            
+        } catch (error) {
+            socket.emit('gm_response', { code: state.roomCode, content: `(GM 오류: ${error.message})` });
+        }
+    }
+
+    // 초기 UI 세팅
+    renderCharacterForms(Number(characterCountInput.value) || 1);
+    setScenario(pickScenario());
+    updateControlLocks();
+  </script>
+</body>
+
+</html>

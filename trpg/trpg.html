@@ -54,7 +54,6 @@
     #chat-log, #chat-log * { word-break: break-word; overflow-wrap: anywhere; }
     #chat-log pre, #chat-log code { white-space: pre-wrap; word-break: break-word; }
     #chat-log img { max-width: 100%; height: auto; display: inline-block; }
-    #chat-log { max-height: calc(100vh - 320px); }
     #chat-log { overscroll-behavior: contain; }
     #input-bar { padding-bottom: env(safe-area-inset-bottom); }
     #right-aside { height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
@@ -63,7 +62,7 @@
     #party-stats-panel { height: 220px; }
     #unlimited-panel { height: 160px; }
     /* 3-pane fixed layout */
-    main { height: calc(100vh - 64px); } /* header ~64px */
+    main { height: calc(100dvh - 64px); } /* header ~64px */
     #left-aside, #center-pane, #right-aside { height: 100%; min-height: 0; }
     #left-aside { overflow-y: auto; }
     #center-pane { display: flex; flex-direction: column; overflow: hidden; }
@@ -72,9 +71,12 @@
     #right-aside { overflow-y: auto; }
     @media (max-width: 640px) {
       header { padding-left: 12px !important; padding-right: 12px !important; }
+      header > div:last-child { flex-wrap: wrap; gap: 8px; }
       #chat-log { padding-left: 12px !important; padding-right: 12px !important; }
-      #player-input { height: 64px !important; }
-      #send-message { padding: 10px 16px !important; }
+      #player-input { height: 56px !important; }
+      #send-message { padding: 10px 14px !important; }
+      #left-aside { max-height: calc(100dvh - 180px); overflow-y: auto; }
+      #center-pane { height: calc(100dvh - 180px); }
     }
     #app-version {
       position: fixed;

@@ -55,6 +55,27 @@
     #chat-log pre, #chat-log code { white-space: pre-wrap; word-break: break-word; }
     #chat-log img { max-width: 100%; height: auto; display: inline-block; }
     #chat-log { max-height: calc(100vh - 320px); }
+    #chat-log { overscroll-behavior: contain; }
+    #input-bar { padding-bottom: env(safe-area-inset-bottom); }
+    #right-aside { height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
+    #dice-panel, #party-stats-panel, #unlimited-panel { overflow-y: auto; }
+    #dice-panel { height: 240px; }
+    #party-stats-panel { height: 220px; }
+    #unlimited-panel { height: 160px; }
+    /* 3-pane fixed layout */
+    main { height: calc(100vh - 64px); } /* header ~64px */
+    #left-aside, #center-pane, #right-aside { height: 100%; min-height: 0; }
+    #left-aside { overflow-y: auto; }
+    #center-pane { display: flex; flex-direction: column; overflow: hidden; }
+    #chat-log { flex: 1; min-height: 0; overflow-y: auto; }
+    #input-bar { flex: none; }
+    #right-aside { overflow-y: auto; }
+    @media (max-width: 640px) {
+      header { padding-left: 12px !important; padding-right: 12px !important; }
+      #chat-log { padding-left: 12px !important; padding-right: 12px !important; }
+      #player-input { height: 64px !important; }
+      #send-message { padding: 10px 16px !important; }
+    }
     #app-version {
       position: fixed;
       bottom: 10px;
@@ -90,6 +111,18 @@
             <span class="material-symbols-outlined text-base">description</span>
             문서
           </button>
+          <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <div class="size-2 rounded-full bg-emerald-500"></div>
+            <span class="text-emerald-400 text-xs font-bold uppercase tracking-wider">System Online</span>
+          </div>
+          <div class="flex gap-2">
+            <button class="flex items-center justify-center overflow-hidden rounded-lg h-9 w-9 bg-surface-border hover:bg-primary transition-colors text-white">
+              <span class="material-symbols-outlined text-[20px]">wifi</span>
+            </button>
+            <button class="flex items-center justify-center overflow-hidden rounded-lg h-9 w-9 bg-surface-border hover:bg-primary transition-colors text-white">
+              <span class="material-symbols-outlined text-[20px]">settings</span>
+            </button>
+          </div>
           <button class="flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark">
             <span class="material-symbols-outlined text-base">play_arrow</span>
             미리보기
@@ -306,21 +339,39 @@
           <div class="flex flex-1 min-h-0 flex-col overflow-hidden rounded-3xl border border-surface-border bg-surface-dark/70 shadow-2xl shadow-black/50">
             <div class="flex flex-1 min-h-0 flex-col lg:flex-row">
               <aside id="left-aside" class="flex w-full flex-col gap-5 border-b border-surface-border bg-black/20 p-5 backdrop-blur lg:w-80 lg:border-b-0 lg:border-r">
-                <div class="rounded-2xl border border-white/10 bg-black/30 p-4" id="scenario-panel">
-                  <div class="flex items-center justify-between text-xs font-semibold text-text-secondary">
-                    <span>랜덤 시나리오</span>
-                    <button id="reroll-scenario" class="rounded-xl border border-white/20 px-3 py-1 text-[11px] text-white transition hover:border-primary">새 시나리오</button>
+                <div id="profile-card" class="rounded-2xl border border-white/10 bg-black/30 p-4">
+                  <div class="flex flex-col items-center text-center gap-3">
+                    <div class="relative">
+                      <div class="bg-center bg-no-repeat bg-cover rounded-xl h-28 w-28 border-2 border-surface-border shadow-lg shadow-primary/20" style="background-image:url('https://placeholder.pics/svg/120');"></div>
+                      <div class="absolute -bottom-2 -right-2 bg-surface-dark border border-surface-border rounded-full p-1.5 text-text-secondary">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                      </div>
+                    </div>
+                    <div class="flex flex-col">
+                      <h3 id="profile-name" class="text-white text-base font-bold leading-tight">모험가</h3>
+                      <p id="profile-sub" class="text-text-secondary text-xs">Level • Alignment</p>
+                    </div>
                   </div>
-                  <div id="scenario-display" class="scrollbar rich-text mt-3 max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-slate-200"></div>
-                  <button id="prep-new-scenario" class="mt-3 w-full rounded-xl border border-white/20 py-2 text-xs font-semibold text-text-secondary transition hover:border-primary hover:text-white">새 시나리오 준비</button>
                 </div>
-                <button id="start-session" class="rounded-2xl bg-primary py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark">랜덤 시나리오로 게임 시작</button>
+                <div class="rounded-2xl border border-white/10 bg-black/30 p-4" id="self-panel">
+                  <div class="flex items-center justify-between text-xs font-semibold text-text-secondary">
+                    <span>내 캐릭터</span>
+                  </div>
+                  <div id="self-info" class="scrollbar mt-3 max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-slate-200"></div>
+                </div>
+                <div class="rounded-2xl border border-white/10 bg-black/30 p-4" id="companions-panel">
+                  <div class="flex items-center justify-between text-xs font-semibold text-text-secondary">
+                    <span>동료 상태</span>
+                  </div>
+                  <div id="companions-info" class="scrollbar mt-3 max-h-40 overflow-y-auto rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-slate-200"></div>
+                </div>
+                <button id="start-session" class="rounded-2xl bg-primary py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark">게임 시작</button>
               </aside>
 
               <div class="flex min-h-0 flex-1 flex-col border-surface-border bg-black/30 relative">
                 <div id="player-profiles" class="scrollbar hidden flex-shrink-0 gap-4 overflow-x-auto border-b border-surface-border bg-black/30 px-6 py-4"></div>
                 <div id="chat-log" class="scrollbar flex-1 min-h-0 space-y-6 overflow-y-auto overflow-x-hidden break-words px-6 py-6 text-base max-w-full"></div>
-                <div class="border-t border-surface-border bg-black/70 p-4 backdrop-blur flex-none">
+                <div id="input-bar" class="border-t border-surface-border bg-black/70 p-4 backdrop-blur flex-none">
                  
                   <label for="player-input" class="text-[11px] font-semibold uppercase tracking-wide text-text-secondary">플레이어 행동 입력</label>
                   <div class="mt-2 flex flex-col gap-3 rounded-2xl border border-surface-border bg-surface-dark/70 p-3 shadow-inner shadow-black/40">
@@ -333,21 +384,21 @@
                 </div>
               </div>
 
-              <aside class="hidden w-80 flex-col gap-4 border-l border-surface-border bg-black/20 p-5 backdrop-blur xl:flex">
-                <div id="dice-panel" class="hidden rounded-2xl border border-white/10 bg-black/40 p-4 text-white">
-                  <div class="flex items-center justify-between text-xs uppercase tracking-widest text-text-secondary">
-                    <span>주사위 판정</span>
-                    <span class="text-[10px] text-text-secondary">자동 기록</span>
+              <aside id="right-aside" class="hidden w-80 flex-col gap-4 border-l border-surface-border bg-black/20 p-5 backdrop-blur xl:flex">
+                <div class="flex border-b border-surface-border">
+                  <button id="tab-btn-log" class="flex-1 py-3 text-sm font-bold text-white border-b-2 border-primary bg-primary/5">Log</button>
+                  <button id="tab-btn-inv" class="flex-1 py-3 text-sm font-medium text-text-secondary hover:text-white transition-colors">Inventory</button>
+                </div>
+                <div id="tab-log" class="rounded-2xl border border-white/10 bg-black/40 p-0">
+                  <div class="flex flex-col divide-y divide-surface-border">
+                    <div class="p-4">
+                      <p class="text-[11px] font-semibold text-text-secondary">최근 판정 기록</p>
+                      <ul id="activity-log" class="scrollbar mt-2 max-h-56 space-y-1 overflow-y-auto rounded-2xl border border-white/10 bg-black/50 p-3 text-[11px] text-slate-200"></ul>
+                    </div>
                   </div>
-                  <div class="mt-4 flex items-center justify-center gap-3">
-                    <div class="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-black/50 text-4xl" id="dice-visual-a">⚀</div>
-                    <div class="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-black/50 text-4xl" id="dice-visual-b">⚁</div>
-                  </div>
-                  <p id="dice-summary" class="mt-4 text-center text-xs text-text-secondary">아직 판정이 없습니다.</p>
-                  <div class="mt-4">
-                    <p class="text-[11px] font-semibold text-text-secondary">최근 판정 기록</p>
-                    <ul id="dice-log" class="scrollbar mt-2 max-h-40 space-y-1 overflow-y-auto rounded-2xl border border-white/10 bg-black/50 p-3 text-[11px] text-slate-200"></ul>
-                  </div>
+                </div>
+                <div id="tab-inventory" class="hidden rounded-2xl border border-white/10 bg-black/40 p-4">
+                  <p class="text-xs text-text-secondary">인벤토리 연동 예정</p>
                 </div>
                 <div class="rounded-2xl border border-white/10 bg-black/40 p-4" id="party-stats-panel">
                   <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-text-secondary">
@@ -356,17 +407,16 @@
                   </div>
                   <div id="party-stats" class="mt-3 space-y-3 text-xs text-slate-200"></div>
                 </div>
-                <div class="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm font-semibold text-white">언리밋 모드 (19금)</p>
-                      <p class="text-[11px] text-text-secondary">성인용 묘사와 제한 없는 스토리를 허용합니다.</p>
+                <!-- Unlimited panel removed -->
+                <div id="location-panel" class="p-2 border-t border-surface-border">
+                  <p class="text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Location</p>
+                  <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-surface-border group cursor-pointer">
+                    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: url('https://placeholder.pics/svg/300');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                    <div class="absolute bottom-2 left-3">
+                      <p class="text-white text-sm font-bold">Sector</p>
+                      <p class="text-[10px] text-text-secondary">Area</p>
                     </div>
-                    <label class="relative inline-flex cursor-pointer items-center">
-                      <input type="checkbox" id="unlimited-toggle" class="peer sr-only">
-                      <div class="peer h-6 w-11 rounded-full bg-slate-700 transition peer-checked:bg-primary"></div>
-                      <div class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition peer-checked:translate-x-5"></div>
-                    </label>
                   </div>
                 </div>
               </aside>
@@ -450,12 +500,18 @@
 
     const connectedProvider = document.getElementById("connected-provider");
     const connectedModel = document.getElementById("connected-model");
-    const scenarioDisplay = document.getElementById("scenario-display");
-    const scenarioPanel = document.getElementById("scenario-panel");
+    const tabBtnLog = document.getElementById("tab-btn-log");
+    const tabBtnInv = document.getElementById("tab-btn-inv");
+    const tabLog = document.getElementById("tab-log");
+    const tabInv = document.getElementById("tab-inventory");
+    const partyStatsPanel = document.getElementById("party-stats-panel");
+    const locationPanel = document.getElementById("location-panel");
+    const selfPanel = document.getElementById("self-panel");
+    const selfInfo = document.getElementById("self-info");
+    const companionsPanel = document.getElementById("companions-panel");
+    const companionsInfo = document.getElementById("companions-info");
     const dicePanel = document.getElementById("dice-panel");
-    const rerollScenarioBtn = document.getElementById("reroll-scenario");
     const startBtn = document.getElementById("start-session");
-    const prepNewScenarioBtn = document.getElementById("prep-new-scenario");
 
     const characterCountInput = document.getElementById("character-count");
     const characterFormsWrapper = document.getElementById("character-forms");
@@ -471,6 +527,26 @@
     const playerInput = document.getElementById("player-input");
     const sendBtn = document.getElementById("send-message");
     const statusEl = document.getElementById("status");
+    function showTab(which) {
+      const logActive = which === "log";
+      const invActive = which === "inv";
+      tabLog?.classList.toggle("hidden", !logActive);
+      tabInv?.classList.toggle("hidden", !invActive);
+      partyStatsPanel?.classList.toggle("hidden", invActive);
+      locationPanel?.classList.toggle("hidden", invActive);
+      if (tabBtnLog) {
+        tabBtnLog.className = logActive
+          ? "flex-1 py-3 text-sm font-bold text-white border-b-2 border-primary bg-primary/5"
+          : "flex-1 py-3 text-sm font-medium text-text-secondary hover:text-white transition-colors";
+      }
+      if (tabBtnInv) {
+        tabBtnInv.className = invActive
+          ? "flex-1 py-3 text-sm font-bold text-white border-b-2 border-primary bg-primary/5"
+          : "flex-1 py-3 text-sm font-medium text-text-secondary hover:text-white transition-colors";
+      }
+    }
+    tabBtnLog?.addEventListener("click", () => showTab("log"));
+    tabBtnInv?.addEventListener("click", () => showTab("inv"));
 
     const difficultyTargets = {
       easy: { label: "쉬움", target: 6 },
@@ -495,6 +571,7 @@
       
       // Multiplayer State
       roomCode: null,
+      preferredRoomCode: null,
       isHost: false,
       nickname: "",
       players: [],
@@ -541,8 +618,12 @@
         characters: charsToSave,
         mode: state.mode, // Save the mode
         chatHtml: chatLog.innerHTML,
-        longPrompt: state.longPrompt
+        longPrompt: state.longPrompt,
+        stats: state.stats
       };
+      if (state.mode === 'multi' && state.roomCode) {
+        saveData.roomCode = state.roomCode;
+      }
 
       try {
         const res = await fetch(`${BACKEND_URL}/api/save`, {
@@ -583,15 +664,19 @@
       saveList.innerHTML = saves.map(save => {
         const date = new Date(save.timestamp).toLocaleString();
         const isMulti = save.mode === 'multi';
+        const codeInfo = isMulti && save.roomCode ? `<span class="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded">${save.roomCode}</span>` : `<span class="text-xs text-slate-400">코드 없음</span>`;
         return `
           <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-surface-dark/40 p-4 transition hover:bg-surface-dark/60">
             <div class="flex flex-col gap-1">
               <h3 class="font-bold text-white">${save.title}</h3>
               <p class="text-xs text-text-secondary">${date} · ${save.model} ${isMulti ? '· 멀티' : ''}</p>
+              ${isMulti ? `<div class="mt-1 flex items-center gap-2"><span class="text-[11px] text-text-secondary">초대 코드</span>${codeInfo}</div>` : ''}
             </div>
             <div class="flex gap-2">
               <button data-action="load" data-id="${save.id}" onclick="loadGame('${save.id}')" class="rounded-lg bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary hover:text-white">불러오기</button>
               ${isMulti ? `<button data-action="load-multi" data-id="${save.id}" onclick="loadGameMulti('${save.id}')" class="rounded-lg bg-purple-600/30 px-3 py-1.5 text-xs font-semibold text-purple-300 transition hover:bg-purple-600 hover:text-white">멀티로 복원</button>` : ''}
+              ${isMulti ? `<button data-action="open-waiting" data-id="${save.id}" class="rounded-lg bg-emerald-600/30 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-600 hover:text-white">대기실 열기</button>` : ''}
+              ${isMulti && save.roomCode ? `<button data-action="copy-link" data-id="${save.id}" class="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-white transition hover:bg-white/20">초대 링크 복사</button>` : ''}
               <button data-action="delete" data-id="${save.id}" onclick="deleteGame('${save.id}')" class="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-rose-400 transition hover:border-rose-400 hover:bg-rose-400/10">삭제</button>
             </div>
           </div>
@@ -632,6 +717,36 @@
           window.loadGameMulti(id);
         });
       });
+      Array.from(saveList.querySelectorAll('button[data-action="open-waiting"]')).forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const save = saves.find(s => s.id === id);
+          if (!save) return;
+          restoreGameMultiplayer(save);
+          setTimeout(() => {
+            const name = multiNickname.value.trim() || "호스트";
+            state.nickname = name;
+            const code = save.roomCode || undefined;
+            socket.emit('create_room', { name, code });
+          }, 50);
+        });
+      });
+      Array.from(saveList.querySelectorAll('button[data-action="copy-link"]')).forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const save = saves.find(s => s.id === id);
+          if (!save || !save.roomCode) return;
+          const code = save.roomCode.toUpperCase();
+          const origin = window.location.origin;
+          const link = `${origin}/?room=${code}`;
+          try {
+            await navigator.clipboard.writeText(link);
+            setStatus("초대 링크를 복사했습니다.");
+          } catch {
+            setStatus("복사 실패. 링크: " + link, true);
+          }
+        });
+      });
       Array.from(saveList.querySelectorAll('button[data-action="delete"]')).forEach(btn => {
         btn.addEventListener('click', async (e) => {
           const id = e.currentTarget.getAttribute('data-id');
@@ -650,6 +765,7 @@
       state.playerCount = save.playerCount;
       state.characters = save.characters;
       state.mode = save.mode || 'solo';
+      state.stats = save.stats || {};
       state.longPrompt = save.longPrompt || "";
       
       // UI 복원
@@ -679,6 +795,7 @@
       
       // 주사위/시나리오 패널 상태 (게임 중이므로 주사위 패널 표시)
       showDicePanel(); 
+      renderSelfInfo();
       setStatus("게임을 불러왔습니다.");
     }
 
@@ -693,6 +810,7 @@
       state.characters = []; // 멀티에선 개별 캐릭터는 players에서 관리
       state.mode = 'multi';
       state.restoringMultiSave = true;
+      state.preferredRoomCode = save.roomCode || null;
       state.restorePlayers = (save.characters || []).map((c) => ({
         name: c?.name || "플레이어",
         character: c
@@ -925,19 +1043,15 @@
     }
 
     function showScenarioPanel() {
-      scenarioPanel?.classList.remove("hidden");
-      dicePanel?.classList.add("hidden");
+      selfPanel?.classList.remove("hidden");
     }
 
     function showDicePanel() {
-      scenarioPanel?.classList.add("hidden");
       dicePanel?.classList.remove("hidden");
     }
 
     function enterCompactMode() {
-      // 좌측 패널 전체를 숨기고 중앙 텍스트 영역을 확장 (우측 주사위 패널은 유지)
-      document.getElementById('left-aside')?.classList.add('hidden');
-      scenarioPanel?.classList.add('hidden');
+      // 텍스트 영역 확장만 수행 (패널 유지)
     }
 
     function updateControlLocks() {
@@ -945,8 +1059,7 @@
       playerInput.disabled = state.isBusy;
       playerInput.classList.toggle("opacity-60", state.isBusy);
       playerInput.classList.toggle("cursor-not-allowed", state.isBusy);
-      startBtn.disabled = state.isBusy;
-      rerollScenarioBtn.disabled = state.isBusy;
+      if (startBtn) startBtn.disabled = state.isBusy;
     }
 
     function setBusyState(value) {
@@ -992,6 +1105,160 @@
           return segments.join("\n");
         })
         .join("\n\n");
+    }
+
+    function renderSelfInfo() {
+      if (!selfInfo) return;
+      let content = "";
+      if (state.mode === 'multi') {
+        const me = state.players.find(p => p.sid === socket.id);
+        const c = me?.character || state.characters[0];
+        const key = me?.sid || 'solo-0';
+        ensureMultiStats();
+        const st = state.stats[key] || deriveDefaultStats(c || {});
+        if (c) {
+          content = `
+            <div>
+              <p class="text-sm font-semibold text-white">${c.name || "이름 없음"}</p>
+              <p class="text-xs text-text-secondary">${c.role || ""} ${c.race ? "· " + c.race : ""}</p>
+              <div class="mt-2 flex items-center gap-3">
+                ${renderPips(st.hp, st.hpMax, 'bg-rose-500')}
+                ${renderPips(st.sp, st.spMax, 'bg-sky-500')}
+              </div>
+              <div class="mt-2">
+                ${renderStatusBadges(st.status)}
+              </div>
+              <div class="mt-2 text-xs whitespace-pre-line">${buildCharacterSummary([c])}</div>
+            </div>`;
+        } else {
+          content = `<p class="text-xs text-text-secondary">캐릭터 정보가 없습니다.</p>`;
+        }
+      } else {
+        const chars = state.characters.length ? state.characters : [];
+        ensureSoloStats();
+        content = chars.map((c, idx) => {
+          const key = `solo-${idx}`;
+          const st = state.stats[key] || deriveDefaultStats(c);
+          return `
+          <div class="mb-3">
+            <p class="text-sm font-semibold text-white">${c.name || "이름 없음"}</p>
+            <p class="text-xs text-text-secondary">${c.role || ""} ${c.race ? "· " + c.race : ""}</p>
+            <div class="mt-2 flex items-center gap-3">
+              ${renderPips(st.hp, st.hpMax, 'bg-rose-500')}
+              ${renderPips(st.sp, st.spMax, 'bg-sky-500')}
+            </div>
+            <div class="mt-2">
+              ${renderStatusBadges(st.status)}
+            </div>
+            <div class="mt-2 text-xs whitespace-pre-line">${buildCharacterSummary([c])}</div>
+          </div>`;
+        }).join("") || `<p class="text-xs text-text-secondary">캐릭터를 생성하세요.</p>`;
+      }
+      selfInfo.innerHTML = content;
+    }
+
+    function renderCompanionsInfo() {
+      if (!companionsInfo || state.mode !== 'multi') {
+        companionsPanel?.classList.add("hidden");
+        return;
+      }
+      companionsPanel?.classList.remove("hidden");
+      const items = state.players
+        .filter(p => p.sid !== socket.id)
+        .map(p => {
+          const c = p.character || {};
+          const key = p.sid || p.name;
+          ensureMultiStats();
+          const st = state.stats[key] || deriveDefaultStats(c);
+          return `
+            <div class="mb-3">
+              <p class="text-sm font-semibold text-white">${p.name}</p>
+              <p class="text-xs text-text-secondary">${c.name || "캐릭터 없음"} ${c.role ? "· " + c.role : ""}</p>
+              <div class="mt-2 flex items-center gap-3">
+                ${renderPips(st.hp, st.hpMax, 'bg-rose-500')}
+                ${renderPips(st.sp, st.spMax, 'bg-sky-500')}
+              </div>
+              <div class="mt-2">
+                ${renderStatusBadges(st.status)}
+              </div>
+            </div>`;
+        }).join("");
+      companionsInfo.innerHTML = items || `<p class="text-xs text-text-secondary">아직 동료가 없습니다.</p>`;
+    }
+    function deriveDefaultStats(c) {
+      const role = (c?.role || "").toLowerCase();
+      let hpMax = 5, spMax = 5;
+      if (/(전사|기사|바바리안|팔라딘)/i.test(role)) { hpMax = 6; spMax = 4; }
+      if (/(마법사|위저드|소서러|클레릭|사제)/i.test(role)) { hpMax = 4; spMax = 6; }
+      return { hp: hpMax, hpMax, sp: spMax, spMax, status: [] };
+    }
+    function ensureSoloStats() {
+      state.characters.forEach((c, idx) => {
+        const key = `solo-${idx}`;
+        if (!state.stats[key]) state.stats[key] = deriveDefaultStats(c);
+      });
+    }
+    function ensureMultiStats() {
+      (state.players || []).forEach((p) => {
+        const key = p.sid || p.name;
+        if (!state.stats[key]) state.stats[key] = p.stats || deriveDefaultStats(p.character || {});
+      });
+    }
+    function renderPips(current, max, color) {
+      const items = [];
+      for (let i = 0; i < max; i++) {
+        const filled = i < current;
+        items.push(`<span class="inline-block h-3 w-3 rounded-full ${filled ? color : 'bg-transparent border border-white/20'}"></span>`);
+      }
+      return `<div class="flex gap-1">${items.join("")}</div>`;
+    }
+    function renderStatusBadges(list) {
+      const items = Array.isArray(list) ? list.filter(Boolean) : [];
+      if (!items.length) return `<span class="text-[11px] text-text-secondary">상태 없음</span>`;
+      return `<div class="flex flex-wrap gap-1">${items.map(s => `<span class="px-2 py-0.5 rounded-full text-[10px] bg-white/10 text-slate-200">${String(s).slice(0,32)}</span>`).join("")}</div>`;
+    }
+    function detectDamageType(text) {
+      const t = (text || "").toLowerCase();
+      if (/(공격|전투|타격|부상|넘어짐|추락|칼|창|활|격투|방패|근접|원거리)/i.test(t)) return "hp";
+      if (/(공포|정신|혼란|스트레스|위협|환각|저주|설득 실패|협상 실패)/i.test(t)) return "sp";
+      return Math.random() < 0.5 ? "hp" : "sp";
+    }
+    function applyFailureDamage(contextText) {
+      if (state.mode === 'multi') {
+        const current = state.players[state.turnIndex];
+        const key = current?.sid;
+        if (!key) return;
+        ensureMultiStats();
+        const type = detectDamageType(contextText);
+        const st = state.stats[key];
+        if (type === "hp" && st.hp > 0) st.hp -= 1;
+        if (type === "sp" && st.sp > 0) st.sp -= 1;
+        if (st.hp <= 0 || st.sp <= 0) {
+          st.hp = Math.max(0, st.hp);
+          st.sp = Math.max(0, st.sp);
+          st.status = Array.from(new Set([...(st.status || []), "사망", "관전"]));
+          socket.emit('set_spectator', { code: state.roomCode, sid: key, reason: type });
+        }
+        renderSelfInfo();
+        renderCompanionsInfo();
+        socket.emit('update_stats', { code: state.roomCode, sid: key, stats: st });
+      } else {
+        ensureSoloStats();
+        const key = "solo-0";
+        const st = state.stats[key];
+        const type = detectDamageType(contextText);
+        if (type === "hp" && st.hp > 0) st.hp -= 1;
+        if (type === "sp" && st.sp > 0) st.sp -= 1;
+        if (st.hp <= 0 || st.sp <= 0) {
+          st.hp = Math.max(0, st.hp);
+          st.sp = Math.max(0, st.sp);
+          st.status = Array.from(new Set([...(st.status || []), "사망"]));
+          playerInput.disabled = true;
+          sendBtn.disabled = true;
+          setStatus("사망했습니다.");
+        }
+        renderSelfInfo();
+      }
     }
 
     function collectCharacterData() {
@@ -1045,18 +1312,75 @@
     }
 
     function appendChat(role, text) {
+      const isUser = role === "user";
       const wrapper = document.createElement("div");
-      wrapper.className = "flex gap-3";
+      wrapper.className = `flex gap-4 max-w-3xl ${isUser ? "flex-row-reverse ml-auto" : ""}`;
       const avatar = document.createElement("div");
-      avatar.className = `mt-1 h-8 w-8 flex-shrink-0 rounded-full border border-slate-800 flex items-center justify-center ${role === "user" ? "bg-emerald-500/20" : "bg-slate-800/80"}`;
-      avatar.textContent = role === "user" ? "플" : "GM";
+      avatar.className = isUser
+        ? "flex-none size-10 rounded-full bg-gray-700 bg-center bg-cover"
+        : "flex-none size-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center";
+      if (!isUser) {
+        const icon = document.createElement("span");
+        icon.className = "material-symbols-outlined text-white text-xl";
+        icon.textContent = "smart_toy";
+        avatar.appendChild(icon);
+      }
+      const meta = document.createElement("span");
+      meta.className = `${isUser ? "text-text-secondary" : "text-primary"} text-sm font-bold ${isUser ? "mr-1" : "ml-1"}`;
+      meta.textContent = isUser ? "You" : "Game Master (AI)";
       const bubble = document.createElement("div");
-      bubble.className = "rich-text flex-1 rounded-3xl border border-slate-800/80 bg-slate-900/80 px-5 py-4 text-base";
-      bubble.textContent = role === "assistant" ? `GM: ${text}` : text;
+      bubble.className = isUser
+        ? "rich-text bg-primary text-white rounded-2xl rounded-tr-none p-4 shadow-lg shadow-primary/10"
+        : "rich-text bg-surface-dark border border-surface-border text-gray-200 rounded-2xl rounded-tl-none p-5 shadow-lg";
+      bubble.textContent = isUser ? text : text;
       wrapper.appendChild(avatar);
-      wrapper.appendChild(bubble);
+      const col = document.createElement("div");
+      col.className = "flex flex-col gap-1";
+      col.appendChild(meta);
+      col.appendChild(bubble);
+      wrapper.appendChild(col);
       chatLog.appendChild(wrapper);
       chatLog.scrollTop = chatLog.scrollHeight;
+    }
+    let typingEl = null;
+    function showTypingIndicator() {
+      if (typingEl) return;
+      const wrap = document.createElement("div");
+      wrap.className = "flex gap-4 max-w-3xl";
+      const avatar = document.createElement("div");
+      avatar.className = "flex-none size-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center";
+      const icon = document.createElement("span");
+      icon.className = "material-symbols-outlined text-white text-xl";
+      icon.textContent = "smart_toy";
+      avatar.appendChild(icon);
+      const col = document.createElement("div");
+      col.className = "flex flex-col gap-1";
+      const meta = document.createElement("span");
+      meta.className = "text-primary text-sm font-bold ml-1";
+      meta.textContent = "Game Master (AI)";
+      const box = document.createElement("div");
+      box.className = "bg-surface-dark border border-surface-border rounded-2xl rounded-tl-none px-5 py-4 w-24";
+      const dots = document.createElement("div");
+      dots.className = "flex gap-1.5 items-center h-full";
+      ["", "", ""].forEach(() => {
+        const d = document.createElement("div");
+        d.className = "w-2 h-2 rounded-full bg-text-secondary typing-dot";
+        dots.appendChild(d);
+      });
+      box.appendChild(dots);
+      col.appendChild(meta);
+      col.appendChild(box);
+      wrap.appendChild(avatar);
+      wrap.appendChild(col);
+      chatLog.appendChild(wrap);
+      chatLog.scrollTop = chatLog.scrollHeight;
+      typingEl = wrap;
+    }
+    function hideTypingIndicator() {
+      if (typingEl && typingEl.parentNode) {
+        typingEl.parentNode.removeChild(typingEl);
+      }
+      typingEl = null;
     }
 
     function logDiceResult(roll) {
@@ -1065,13 +1389,53 @@
       const item = document.createElement("li");
       const timestamp = new Date().toLocaleTimeString();
       item.textContent = `[${timestamp}] ${difficultyInfo.label} | ${roll.first} + ${roll.second} = ${roll.total} → ${outcome}`;
-      diceLog.prepend(item);
-      while (diceLog.children.length > 10) {
-        diceLog.removeChild(diceLog.lastChild);
+      const activity = document.getElementById("activity-log");
+      if (activity) {
+        activity.prepend(item);
+        while (activity.children.length > 50) {
+          activity.removeChild(activity.lastChild);
+        }
       }
-      if (diceSummary) {
-        diceSummary.textContent = `마지막 판정 · ${difficultyInfo.label} (목표 ${difficultyInfo.target}) | ${roll.first} + ${roll.second} = ${roll.total} → ${outcome}`;
-      }
+      // 스타일 카드로 채팅에 시스템 판정 표시
+      const card = document.createElement("div");
+      card.className = "flex justify-center my-4";
+      const inner = document.createElement("div");
+      inner.className = `flex items-center gap-4 bg-surface-dark border border-surface-border px-6 py-3 rounded-lg shadow-xl relative overflow-hidden`;
+      const stripe = document.createElement("div");
+      stripe.className = `absolute left-0 top-0 bottom-0 w-1 ${outcome === "성공" ? "bg-emerald-500" : "bg-rose-500"}`;
+      const icon = document.createElement("span");
+      icon.className = `${outcome === "성공" ? "text-emerald-500" : "text-rose-500"} material-symbols-outlined text-2xl`;
+      icon.textContent = "casino";
+      const infoBox = document.createElement("div");
+      infoBox.className = "flex flex-col";
+      const title = document.createElement("span");
+      title.className = "text-[10px] uppercase font-bold text-text-secondary tracking-widest";
+      title.textContent = `${difficultyInfo.label} (DC ${difficultyInfo.target})`;
+      const valueRow = document.createElement("div");
+      valueRow.className = "flex items-baseline gap-2";
+      const val = document.createElement("span");
+      val.className = "text-white font-bold text-xl";
+      val.textContent = String(roll.total);
+      const tag = document.createElement("span");
+      tag.className = `${outcome === "성공" ? "text-emerald-400" : "text-rose-400"} text-xs font-bold`;
+      tag.textContent = outcome === "성공" ? "(Success)" : "(Failure)";
+      valueRow.appendChild(val);
+      valueRow.appendChild(tag);
+      infoBox.appendChild(title);
+      infoBox.appendChild(valueRow);
+      const dcSep = document.createElement("div");
+      dcSep.className = "h-8 w-px bg-surface-border mx-2";
+      const dcText = document.createElement("span");
+      dcText.className = "text-text-secondary text-sm";
+      dcText.textContent = `DC ${difficultyInfo.target}`;
+      inner.appendChild(stripe);
+      inner.appendChild(icon);
+      inner.appendChild(infoBox);
+      inner.appendChild(dcSep);
+      inner.appendChild(dcText);
+      card.appendChild(inner);
+      chatLog.appendChild(card);
+      chatLog.scrollTop = chatLog.scrollHeight;
     }
 
     function rollDiceWithAnimation(difficultyKey = "standard") {
@@ -1184,6 +1548,7 @@
 
       setBusyState(true);
       setStatus("GM이 답변을 준비 중입니다...");
+      showTypingIndicator();
 
       try {
         const reply = provider === "gemini"
@@ -1192,12 +1557,14 @@
 
         const clean = (reply || "").replace(/\*\*/g, "");
         state.history = [...payloadMessages, { role: "assistant", content: clean }];
+        hideTypingIndicator();
         appendChat("assistant", clean);
         setStatus("턴이 종료되었습니다. 다음 행동을 입력하세요.");
       } catch (error) {
         console.error(error);
         setStatus(error.message, true);
       } finally {
+        hideTypingIndicator();
         setBusyState(false);
       }
     }
@@ -1216,7 +1583,7 @@
         return;
       }
 
-      const scenario = state.currentScenario || pickScenario();
+      const scenario = state.currentScenario || (state.longPrompt ? "프롬프트 기반 시나리오" : "기본 시나리오");
       const playerCount = Math.min(6, Math.max(1, state.characters.length || 1));
       state.playerCount = playerCount;
       const characterSummary = buildCharacterSummary(state.characters);
@@ -1236,8 +1603,9 @@
       setStatus("게임이 시작되었습니다. 첫 장면을 불러오는 중...");
       sendToModel("위 캐릭터와 시나리오를 기준으로 게임을 시작하고 첫 장면과 선택지를 제시하세요.");
 
-      // 준비해 둘 다음 랜덤 시나리오
-      setScenario(pickScenario());
+      // UI 패널 표시
+      if (startBtn) startBtn.classList.add("hidden");
+      renderSelfInfo();
       enterCompactMode();
       if (autoRoll) {
         rollDiceWithAnimation("standard");
@@ -1317,6 +1685,21 @@
           state.longPrompt = text;
         }
       } catch {}
+      // URL로 방 자동 참가 지원 (?room=CODE)
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const room = params.get('room');
+        const name = params.get('name') || "익명";
+        if (room) {
+          state.mode = 'multi';
+          pageKey.classList.add("hidden");
+          pageLobby.classList.add("hidden");
+          pageMultiplayer.classList.remove("hidden");
+          multiNickname.value = name;
+          roomCodeInput.value = room.toUpperCase();
+          btnJoinRoom.click();
+        }
+      } catch {}
     })();
 
     saveCharacterBtn.addEventListener("click", () => {
@@ -1328,6 +1711,7 @@
             socket.emit('update_character', { code: state.roomCode, character: characters[0] });
             pageCharacter.classList.add("hidden");
             pageWaitingRoom.classList.remove("hidden");
+            renderSelfInfo();
             return;
         }
 
@@ -1337,6 +1721,7 @@
         pageGame.classList.remove("hidden");
         btnSaveGame.classList.remove("hidden"); // 저장 버튼 표시
         setStatus("랜덤 시나리오를 확인하고 '시작'을 누르세요.");
+        renderSelfInfo();
       } catch (error) {
         setCharacterStatus(error.message, true);
       }
@@ -1351,19 +1736,18 @@
     characterCountInput.addEventListener("change", handleCharacterCountInput);
     characterCountInput.addEventListener("input", handleCharacterCountInput);
 
-    startBtn.addEventListener("click", () => startSession(true));
-    rerollScenarioBtn.addEventListener("click", () => {
-      setScenario(pickScenario());
-      setStatus("시나리오를 새로 뽑았습니다. 마음에 들면 시작하세요.");
-    });
-    prepNewScenarioBtn?.addEventListener("click", () => {
-      showScenarioPanel();
-      setScenario(pickScenario());
-      setStatus("새 시나리오가 준비되었습니다. 확인 후 '게임 시작'을 누르세요.");
-    });
+    startBtn.addEventListener("click", () => startSession(false));
+    // 랜덤 시나리오 UI 제거
 
     sendBtn.addEventListener("click", async () => {
       if (state.isBusy || state.diceTimer) return;
+      try {
+        requireApiContext();
+        requireModel();
+      } catch (e) {
+        setStatus(e.message, true);
+        return;
+      }
       const content = playerInput.value.trim();
       if (!content) {
         setStatus("행동 또는 주사위 판정 내용을 입력하세요.", true);
@@ -1382,13 +1766,15 @@
       const outcome = roll.total >= target ? "성공" : "실패";
       const diceNote = `\n\n[자동 판정]\n난이도 ${info.label} (목표 ${target})\n주사위: ${roll.first} + ${roll.second} = ${roll.total} → ${outcome}`;
       const fullMessage = `${content}${diceNote}`;
+      if (outcome === "실패") {
+        applyFailureDamage(content);
+      }
 
       playerInput.value = "";
 
       if (state.mode === 'multi') {
-          // Check turn
           const currentPlayer = state.players[state.turnIndex];
-          if (currentPlayer && currentPlayer.sid !== socket.id) {
+          if (currentPlayer && (currentPlayer.sid !== socket.id || currentPlayer.spectator)) {
               alert("당신의 턴이 아닙니다!");
               return;
           }
@@ -1455,7 +1841,8 @@
     btnCreateRoom.addEventListener("click", () => {
         const name = multiNickname.value.trim() || "익명";
         state.nickname = name;
-        socket.emit('create_room', { name });
+        const code = state.preferredRoomCode || undefined;
+        socket.emit('create_room', { name, code });
     });
 
     btnJoinRoom.addEventListener("click", () => {
@@ -1471,8 +1858,14 @@
     });
 
     btnLeaveRoom.addEventListener("click", () => {
-        socket.emit('disconnect'); 
-        location.reload(); 
+        try { socket.disconnect(); } catch {}
+        state.roomCode = null;
+        state.players = [];
+        state.isHost = false;
+        pageWaitingRoom.classList.add("hidden");
+        pageMultiplayer.classList.add("hidden");
+        pageLobby.classList.remove("hidden");
+        setStatus("방에서 나왔습니다.");
     });
 
     // Waiting Room Logic
@@ -1531,11 +1924,18 @@
     socket.on('player_updated', (data) => {
         state.players = data.players;
         renderPlayerList();
+        renderCompanionsInfo();
+    });
+    socket.on('stats_updated', (data) => {
+        state.players = data.players;
+        renderSelfInfo();
+        renderCompanionsInfo();
     });
 
     socket.on('player_left', (data) => {
         state.players = data.players;
         renderPlayerList();
+        renderCompanionsInfo();
         if (state.players.length > 0 && state.players[0].sid === socket.id) {
             state.isHost = true;
             hostControls.classList.remove("hidden");
@@ -1558,9 +1958,12 @@
         pageWaitingRoom.classList.add("hidden");
         pageGame.classList.remove("hidden");
         
+        renderSelfInfo();
+        renderCompanionsInfo();
         enterCompactMode();
         updateControlLocks();
         setStatus("멀티플레이 게임이 시작되었습니다!");
+        if (startBtn) startBtn.classList.add("hidden");
         
         if (state.isHost) {
             startMultiplayerSession();
@@ -1600,6 +2003,8 @@
         pageWaitingRoom.classList.remove("hidden");
         displayRoomCode.textContent = state.roomCode;
         renderPlayerList();
+        renderSelfInfo();
+        renderCompanionsInfo();
         
         if (state.isHost) {
             hostControls.classList.remove("hidden");
@@ -1638,7 +2043,7 @@
     }
     
     async function startMultiplayerSession() {
-        const scenario = state.currentScenario || pickScenario();
+        const scenario = state.currentScenario || (state.longPrompt ? "프롬프트 기반 시나리오" : "기본 시나리오");
         
         const allChars = state.players.map(p => p.character).filter(Boolean);
         const characterSummary = buildCharacterSummary(allChars);
@@ -1685,7 +2090,7 @@
 
     // 초기 UI 세팅
     renderCharacterForms(Number(characterCountInput.value) || 1);
-    setScenario(pickScenario());
+    setScenario(state.currentScenario || (state.longPrompt ? "프롬프트 기반 시나리오" : "기본 시나리오"));
     updateControlLocks();
   </script>
 </body>

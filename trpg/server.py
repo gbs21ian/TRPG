@@ -136,15 +136,17 @@ def delete_save():
 def handle_create_room(data):
     """방 생성 요청"""
     player_name = data.get('name', 'Unknown')
-    room_code = generate_room_code()
+    requested = data.get('code')
+    room_code = requested if (requested and requested not in rooms) else generate_room_code()
     
     rooms[room_code] = {
         "host": request.sid,
         "players": [{
             "sid": request.sid,
             "name": player_name,
-            "is_ready": True, # 방장은 항상 준비됨
-            "character": None
+            "is_ready": True,
+            "character": None,
+            "spectator": False
         }],
         "state": "waiting",
         "turn_index": 0,
@@ -190,7 +192,8 @@ def handle_join_room(data):
             "sid": request.sid,
             "name": player_name,
             "is_ready": False,
-            "character": None
+            "character": None,
+            "spectator": False
         })
     
     join_room(room_code)
@@ -198,6 +201,7 @@ def handle_join_room(data):
     emit('player_joined', {"players": room["players"]}, to=room_code)
     # 새 참가자에게 채팅 히스토리 동기화
     emit('sync_history', {"chat_html": room.get("chat_html", "")}, to=request.sid)
+    emit('stats_updated', {"players": room["players"]}, to=request.sid)
     print(f"{player_name} joined room {room_code}")
 
 @socketio.on('update_character')
@@ -233,7 +237,8 @@ def handle_restore_room(data):
                 "sid": request.sid if idx == 0 else None,
                 "name": name,
                 "is_ready": True,
-                "character": p.get('character')
+                "character": p.get('character'),
+                "spectator": False
             })
         rooms[room_code]["players"] = restored_players
         rooms[room_code]["turn_index"] = turn_index
@@ -241,6 +246,7 @@ def handle_restore_room(data):
         rooms[room_code]["state"] = "playing" if start_playing else "waiting"
         emit('player_updated', {"players": rooms[room_code]["players"]}, to=room_code)
         emit('sync_history', {"chat_html": rooms[room_code]["chat_html"]}, to=room_code)
+        emit('stats_updated', {"players": rooms[room_code]["players"]}, to=room_code)
         if start_playing:
             emit('game_started', {
                 "players": rooms[room_code]["players"],
@@ -291,6 +297,40 @@ def handle_gm_response(data):
             "type": "assistant"
         }, to=room_code)
 
+@socketio.on('update_stats')
+def handle_update_stats(data):
+    room_code = data.get('code')
+    sid = data.get('sid')
+    stats = data.get('stats')
+    if room_code in rooms and sid and stats:
+        for p in rooms[room_code]['players']:
+            if p['sid'] == sid:
+                p['stats'] = stats
+                break
+        emit('stats_updated', {"players": rooms[room_code]["players"]}, to=room_code)
+
+@socketio.on('set_spectator')
+def handle_set_spectator(data):
+    room_code = data.get('code')
+    sid = data.get('sid')
+    reason = data.get('reason')
+    if room_code in rooms and sid:
+        room = rooms[room_code]
+        for p in room['players']:
+            if p['sid'] == sid:
+                p['spectator'] = True
+                break
+        emit('player_updated', {"players": room["players"]}, to=room_code)
+        current_idx = room['turn_index']
+        if room['players'][current_idx]['spectator']:
+            next_idx = (current_idx + 1) % len(room['players'])
+            tried = 0
+            while room['players'][next_idx].get('spectator') and tried < len(room['players']):
+                next_idx = (next_idx + 1) % len(room['players'])
+                tried += 1
+            room['turn_index'] = next_idx
+            emit('turn_changed', {"turn_index": next_idx}, to=room_code)
+
 @socketio.on('next_turn')
 def handle_next_turn(data):
     """턴 넘기기"""
@@ -299,8 +339,11 @@ def handle_next_turn(data):
         room = rooms[room_code]
         current_idx = room['turn_index']
         next_idx = (current_idx + 1) % len(room['players'])
+        tried = 0
+        while room['players'][next_idx].get('spectator') and tried < len(room['players']):
+            next_idx = (next_idx + 1) % len(room['players'])
+            tried += 1
         room['turn_index'] = next_idx
-        
         emit('turn_changed', {"turn_index": next_idx}, to=room_code)
 
 @socketio.on('disconnect')

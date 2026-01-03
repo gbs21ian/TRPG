@@ -55,25 +55,30 @@
     #chat-log pre, #chat-log code { white-space: pre-wrap; word-break: break-word; }
     #chat-log img { max-width: 100%; height: auto; display: inline-block; }
     #chat-log { overscroll-behavior: contain; }
+    #chat-log { min-height: 260px; max-height: 60vh; }
     #input-bar { padding-bottom: env(safe-area-inset-bottom); }
+    #player-input { overflow-y: auto; }
     #right-aside { height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
+    /* Mobile momentum scrolling */
+    #left-aside, #chat-log, #right-aside { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
     #dice-panel, #party-stats-panel, #unlimited-panel { overflow-y: auto; }
     #dice-panel { height: 240px; }
-    #party-stats-panel { height: 220px; }
+    #party-stats-panel { height: auto; overflow-y: visible; }
     #unlimited-panel { height: 160px; }
     /* 3-pane fixed layout */
     main { height: calc(100dvh - 64px); } /* header ~64px */
     #left-aside, #center-pane, #right-aside { height: 100%; min-height: 0; }
     #left-aside { overflow-y: auto; }
-    #center-pane { display: flex; flex-direction: column; overflow: hidden; }
+    #center-pane { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
     #chat-log { flex: 1; min-height: 0; overflow-y: auto; }
-    #input-bar { flex: none; }
+    #input-bar { flex: none; position: static; }
     #right-aside { overflow-y: auto; }
     @media (max-width: 640px) {
       header { padding-left: 12px !important; padding-right: 12px !important; }
       header > div:last-child { flex-wrap: wrap; gap: 8px; }
       #chat-log { padding-left: 12px !important; padding-right: 12px !important; }
-      #player-input { height: 56px !important; }
+      #chat-log { min-height: 220px; max-height: 50vh; }
+      #player-input { height: 60px !important; overflow-y: auto; }
       #send-message { padding: 10px 14px !important; }
       #left-aside { max-height: calc(100dvh - 180px); overflow-y: auto; }
       #center-pane { height: calc(100dvh - 180px); }
@@ -322,7 +327,6 @@
               <div class="mt-6 space-y-3 rounded-2xl border border-white/10 bg-black/30 p-4">
                 <p class="text-sm font-semibold text-white">TIP</p>
                 <ul class="list-disc space-y-1 pl-5 text-xs text-text-secondary">
-                  <li>능력치 합은 30이하로 맞추세요.</li>
                   <li>출신/가치관을 자세히 적을수록 GM 서사가 풍부해집니다.</li>
                 </ul>
               </div>
@@ -344,7 +348,7 @@
                 <div id="profile-card" class="rounded-2xl border border-white/10 bg-black/30 p-4">
                   <div class="flex flex-col items-center text-center gap-3">
                     <div class="relative">
-                      <div class="bg-center bg-no-repeat bg-cover rounded-xl h-28 w-28 border-2 border-surface-border shadow-lg shadow-primary/20" style="background-image:url('https://placeholder.pics/svg/120');"></div>
+                      <div id="profile-image" class="bg-center bg-no-repeat bg-cover rounded-xl h-28 w-28 border-2 border-surface-border shadow-lg shadow-primary/20" style="background-image:url('https://placeholder.pics/svg/120');"></div>
                       <div class="absolute -bottom-2 -right-2 bg-surface-dark border border-surface-border rounded-full p-1.5 text-text-secondary">
                         <span class="material-symbols-outlined text-sm">edit</span>
                       </div>
@@ -370,7 +374,7 @@
                 <button id="start-session" class="rounded-2xl bg-primary py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark">게임 시작</button>
               </aside>
 
-              <div class="flex min-h-0 flex-1 flex-col border-surface-border bg-black/30 relative">
+              <div id="center-pane" class="flex min-h-0 flex-1 flex-col border-surface-border bg-black/30 relative">
                 <div id="player-profiles" class="scrollbar hidden flex-shrink-0 gap-4 overflow-x-auto border-b border-surface-border bg-black/30 px-6 py-4"></div>
                 <div id="chat-log" class="scrollbar flex-1 min-h-0 space-y-6 overflow-y-auto overflow-x-hidden break-words px-6 py-6 text-base max-w-full"></div>
                 <div id="input-bar" class="border-t border-surface-border bg-black/70 p-4 backdrop-blur flex-none">
@@ -391,20 +395,15 @@
                   <button id="tab-btn-log" class="flex-1 py-3 text-sm font-bold text-white border-b-2 border-primary bg-primary/5">Log</button>
                   <button id="tab-btn-inv" class="flex-1 py-3 text-sm font-medium text-text-secondary hover:text-white transition-colors">Inventory</button>
                 </div>
-                <div id="tab-log" class="rounded-2xl border border-white/10 bg-black/40 p-0">
-                  <div class="flex flex-col divide-y divide-surface-border">
-                    <div class="p-4">
-                      <p class="text-[11px] font-semibold text-text-secondary">최근 판정 기록</p>
-                      <ul id="activity-log" class="scrollbar mt-2 max-h-56 space-y-1 overflow-y-auto rounded-2xl border border-white/10 bg-black/50 p-3 text-[11px] text-slate-200"></ul>
-                    </div>
-                  </div>
+                <div id="tab-log" class="rounded-2xl border border-white/10 bg-black/40 p-4">
+                  <p class="text-xs text-text-secondary">로그 창</p>
                 </div>
                 <div id="tab-inventory" class="hidden rounded-2xl border border-white/10 bg-black/40 p-4">
                   <p class="text-xs text-text-secondary">인벤토리 연동 예정</p>
                 </div>
                 <div class="rounded-2xl border border-white/10 bg-black/40 p-4" id="party-stats-panel">
                   <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                    <span>파티 능력치</span>
+                    <span>능력치</span>
                     <span class="text-[10px] text-text-secondary">어려운 성공 시 상승</span>
                   </div>
                   <div id="party-stats" class="mt-3 space-y-3 text-xs text-slate-200"></div>
@@ -413,11 +412,14 @@
                 <div id="location-panel" class="p-2 border-t border-surface-border">
                   <p class="text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Location</p>
                   <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-surface-border group cursor-pointer">
-                    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: url('https://placeholder.pics/svg/300');"></div>
+                    <div id="map-image" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: url('https://placeholder.pics/svg/300');"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                     <div class="absolute bottom-2 left-3">
                       <p class="text-white text-sm font-bold">Sector</p>
                       <p class="text-[10px] text-text-secondary">Area</p>
+                    </div>
+                    <div class="absolute top-2 right-2 flex gap-1">
+                      
                     </div>
                   </div>
                 </div>
@@ -465,6 +467,20 @@
       "천둥전차가 추락한 기계 장벽지대. 톱니 요정과 협상해 방어장치를 되살려야 한다."
     ];
     const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+    const RACE_AVATAR_MAP = {
+      "인간": "/assets/avatars/human.png",
+      "엘프": "/assets/avatars/elf.png",
+      "하프엘프": "/assets/avatars/half-elf.png",
+      "다크엘프": "/assets/avatars/dark-elf.png",
+      "드워프": "/assets/avatars/dwarf.png",
+      "바바리안": "/assets/avatars/barbarian.png",
+      "언데드": "/assets/avatars/undead.png",
+      "서큐버스": "/assets/avatars/succubus.png",
+      "뱀파이어": "/assets/avatars/vampire.png",
+      "웨어비스트": "/assets/avatars/werebeast.png",
+      "드래곤본": "/assets/avatars/dragonborn.png",
+      "시레나": "/assets/avatars/sirena.png",
+    };
 
     const pageKey = document.getElementById("page-key");
     const pageSaves = document.getElementById("page-saves");
@@ -512,6 +528,7 @@
     const selfInfo = document.getElementById("self-info");
     const companionsPanel = document.getElementById("companions-panel");
     const companionsInfo = document.getElementById("companions-info");
+    const partyStats = document.getElementById("party-stats");
     const dicePanel = document.getElementById("dice-panel");
     const startBtn = document.getElementById("start-session");
 
@@ -529,6 +546,8 @@
     const playerInput = document.getElementById("player-input");
     const sendBtn = document.getElementById("send-message");
     const statusEl = document.getElementById("status");
+    const mapImageUrlInput = document.getElementById("map-image-url");
+    const btnSetMap = document.getElementById("btn-set-map");
     function showTab(which) {
       const logActive = which === "log";
       const invActive = which === "inv";
@@ -568,6 +587,7 @@
       playerCount: 1,
       characters: [],
       longPrompt: "",
+      gmRules: "",
       isBusy: false,
       diceTimer: null,
       
@@ -580,7 +600,9 @@
       turnIndex: 0,
       restoringMultiSave: false,
       restorePlayers: [],
-      restoreChatHtml: ""
+      restoreChatHtml: "",
+      actionCounts: {},
+      lastActionKey: null
     };
 
     // --- API & Save Logic ---
@@ -621,10 +643,20 @@
         mode: state.mode, // Save the mode
         chatHtml: chatLog.innerHTML,
         longPrompt: state.longPrompt,
-        stats: state.stats
+        stats: state.stats,
+        turnIndex: state.turnIndex || 0,
+        playing: !!(pageGame && !pageGame.classList.contains("hidden"))
       };
+      saveData.mapUrl = state.mapUrl || null;
       if (state.mode === 'multi' && state.roomCode) {
         saveData.roomCode = state.roomCode;
+        saveData.players = (state.players || []).map(p => ({
+          name: p.name,
+          character: p.character,
+          spectator: !!p.spectator,
+          stats: p.stats || {},
+          is_ready: !!p.is_ready
+        }));
       }
 
       try {
@@ -798,6 +830,8 @@
       // 주사위/시나리오 패널 상태 (게임 중이므로 주사위 패널 표시)
       showDicePanel(); 
       renderSelfInfo();
+      renderPartyStatsPanel();
+      updateMapImage();
       setStatus("게임을 불러왔습니다.");
     }
 
@@ -813,11 +847,25 @@
       state.mode = 'multi';
       state.restoringMultiSave = true;
       state.preferredRoomCode = save.roomCode || null;
-      state.restorePlayers = (save.characters || []).map((c) => ({
-        name: c?.name || "플레이어",
-        character: c
-      }));
+      state.restorePlayers = (save.players && Array.isArray(save.players))
+        ? save.players.map(p => ({
+            name: p.name || (p.character?.name || "플레이어"),
+            character: p.character,
+            spectator: !!p.spectator,
+            stats: p.stats || {},
+            is_ready: p.is_ready !== false
+          }))
+        : (save.characters || []).map((c) => ({
+            name: c?.name || "플레이어",
+            character: c,
+            spectator: false,
+            stats: {},
+            is_ready: true
+          }));
       state.restoreChatHtml = save.chatHtml || "";
+      state.restoreTurn = typeof save.turnIndex === "number" ? save.turnIndex : 0;
+      state.restorePlaying = !!save.playing;
+      state.mapUrl = save.mapUrl || state.mapUrl || null;
 
       if (connectedProvider) connectedProvider.textContent = state.provider === "gemini" ? "Gemini" : "OpenAI";
       if (connectedModel) connectedModel.textContent = state.model;
@@ -836,7 +884,8 @@
 
     function setScenario(text) {
       state.currentScenario = text;
-      scenarioDisplay.textContent = text;
+      const el = document.getElementById("scenario-display");
+      if (el) el.textContent = text;
     }
 
     function setStatus(message, isError = false) {
@@ -852,6 +901,39 @@
         }
       }
       return "";
+    }
+    function xpForLevel(level) {
+      const L = Math.max(1, Number(level) || 1);
+      const n = L - 1;
+      return 10 * (n * (n + 1)) / 2;
+    }
+    function parseXpFromText(text) {
+      const t = String(text || "");
+      let total = 0;
+      const re = /경험치\s*\+?\s*(\d+)/g;
+      let m;
+      while ((m = re.exec(t)) !== null) {
+        const v = Number(m[1] || 0);
+        if (!isNaN(v) && v > 0) total += v;
+      }
+      return total;
+    }
+    function awardXpExplicit(key, amount) {
+      if (!key || !amount || amount <= 0) return;
+      ensureSoloStats();
+      ensureMultiStats();
+      const st = state.stats[key];
+      st.xp = (st.xp || 0) + amount;
+      while (st.xp >= xpForLevel((st.level || 1) + 1)) {
+        st.level = (st.level || 1) + 1;
+        levelUpBoostStats(key);
+      }
+      updateProfileCard();
+      renderSelfInfo();
+      renderPartyStatsPanel();
+      if (state.mode === 'multi') {
+        socket.emit('update_stats', { code: state.roomCode, sid: key, stats: st });
+      }
     }
 
     function detectTargetFromText(text) {
@@ -879,16 +961,142 @@
       return "deadly";
     }
 
-    function autoDetermineDifficulty(content) {
+    function autoDetermineDifficulty(content, character) {
       const assistant = getLastAssistantContent();
       let target = detectTargetFromText(assistant);
-      if (target == null) {
-        target = detectTargetFromText(content);
+      if (target == null) target = detectTargetFromText(content);
+      if (target == null) target = difficultyTargets.standard.target;
+      const s = character?.stats || {};
+      function tier(v){ if(!v) return 0; if(v<=4) return -1; if(v>=12) return 2; if(v>=10) return 1; return 0; }
+      const tStr = tier(s.str), tDex = tier(s.dex), tInt = tier(s.int), tCha = tier(s.cha), tCon = tier(s.con), tWis = tier(s.wis);
+      const txt = (content||"").toLowerCase();
+      let action = "general";
+      if (/(공격|전투|무기|타격|근접)/i.test(txt)) action = "melee";
+      else if (/(활|원거리|사격|투척)/i.test(txt)) action = "ranged";
+      else if (/(마법|시전|주문|마도)/i.test(txt)) action = "magic";
+      else if (/(생존|회피|기술|잠입|등반|도약|민첩)/i.test(txt)) action = "survival";
+      else if (/(설득|협상|위협|기품|교섭|카리스마|친화)/i.test(txt)) action = "social";
+      else if (/(직감|지혜|통찰|위험감지|감지)/i.test(txt)) action = "insight";
+      let adjust = 0;
+      if (action === "melee" || action === "ranged") {
+        adjust += Math.max(tStr, tDex);
+        const combo = (s.str||0)+(s.dex||0);
+        if (combo >= 20) adjust += 2; else if (combo >= 13) adjust += 1;
+      } else if (action === "magic") {
+        adjust += Math.max(tInt, tCha);
+        const combo = (s.cha||0)+(s.wis||0);
+        const hasMagic = tInt >= 1 || tCha >= 1;
+        if (hasMagic) {
+          if (combo >= 20) adjust += 2; else if (combo >= 13) adjust += 1;
+        }
+      } else if (action === "survival") {
+        adjust += Math.max(tDex, tCon);
+        const combo = (s.dex||0)+(s.con||0);
+        if (combo >= 20) adjust += 2; else if (combo >= 13) adjust += 1;
+      } else if (action === "social") {
+        adjust += tCha;
+      } else if (action === "insight") {
+        adjust += tWis;
+      } else {
+        adjust += Math.max(tStr, tDex, tInt, tCha, tCon, tWis);
       }
-      const key = mapTargetToKey(target);
+      const finalTarget = Math.max(5, Math.min(11, target - Math.max(0, adjust) + (adjust < 0 ? 1 : 0)));
+      const key = mapTargetToKey(finalTarget);
       const info = difficultyTargets[key] || difficultyTargets.standard;
-      const reason = target != null ? `최근 선택지 기준 목표 ${target}` : "기본 추정";
-      return { key, info, target: target ?? info.target, reason };
+      const reason = `행동:${action} | 기준 ${target} → 능력치 보정 ${Math.max(0,adjust)} 적용`;
+      return { key, info, target: finalTarget, reason, action };
+    }
+    function attachStatRollers(index) {
+      const base = `char-${index}`;
+      const ids = ["str","dex","int","cha","con","wis"];
+      ids.forEach(k => {
+        const btn = document.getElementById(`${base}-roll-${k}`);
+        const out = document.getElementById(`${base}-stat-${k}`);
+        if (btn && out) {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (btn.disabled) return;
+            const a = Math.floor(Math.random()*6)+1;
+            const b = Math.floor(Math.random()*6)+1;
+            out.value = a + b;
+            btn.disabled = true;
+            btn.classList.add("opacity-60", "cursor-not-allowed");
+            updateAbilityPreview(index);
+          });
+          if (out.value) {
+            btn.disabled = true;
+            btn.classList.add("opacity-60", "cursor-not-allowed");
+          }
+        }
+      });
+    }
+    function updateAbilityPreview(index) {
+      const base = `char-${index}`;
+      const s = {
+        str: Number(document.getElementById(`${base}-stat-str`)?.value)||0,
+        dex: Number(document.getElementById(`${base}-stat-dex`)?.value)||0,
+        int: Number(document.getElementById(`${base}-stat-int`)?.value)||0,
+        cha: Number(document.getElementById(`${base}-stat-cha`)?.value)||0,
+        con: Number(document.getElementById(`${base}-stat-con`)?.value)||0,
+        wis: Number(document.getElementById(`${base}-stat-wis`)?.value)||0,
+      };
+      function tier(v){ if(!v) return 0; if(v<=4) return -1; if(v>=12) return 2; if(v>=10) return 1; return 0; }
+      const list = [];
+      if (tier(s.str) === -1) list.push("약한 근력");
+      if (tier(s.dex) === -1) list.push("느릿함");
+      if (tier(s.int) === -1) list.push("멍청함");
+      if (tier(s.cha) === -1) list.push("미약함");
+      if (tier(s.con) === -1) list.push("허약함");
+      if (tier(s.wis) === -1) list.push("어리숙함");
+      if (tier(s.str) === 1) list.push("괴력+1");
+      if (tier(s.str) === 2) list.push("괴력+2");
+      if (tier(s.dex) === 1) list.push("체술+1");
+      if (tier(s.dex) === 2) list.push("체술+2");
+      if (tier(s.int) === 1) list.push("마법시전+1");
+      if (tier(s.int) === 2) list.push("마법시전+2");
+      if (tier(s.cha) === 1) list.push("마법시전+1");
+      if (tier(s.cha) === 2) list.push("마법시전+2");
+      if (tier(s.con) >= 1) list.push("피해감소");
+      if (tier(s.wis) === 1) list.push("직감+1");
+      if (tier(s.wis) === 2) list.push("직감+2");
+      const combo1 = (s.str||0)+(s.dex||0);
+      if (combo1 >= 20) list.push("무기숙련+2"); else if (combo1 >= 13) list.push("무기숙련+1");
+      const combo2 = (s.str||0)+(s.con||0);
+      if (combo2 >= 20) list.push("강인함+2"); else if (combo2 >= 13) list.push("강인함+1");
+      const combo3 = (s.dex||0)+(s.con||0);
+      if (combo3 >= 20) list.push("생존기술+2"); else if (combo3 >= 13) list.push("생존기술+1");
+      const combo4 = (s.cha||0)+(s.wis||0);
+      const hasMagic = tier(s.int) >= 1 || tier(s.cha) >= 1;
+      if (hasMagic) { if (combo4 >= 20) list.push("마법변환+2"); else if (combo4 >= 13) list.push("마법변환+1"); }
+      const combo5 = (s.con||0)+(s.wis||0);
+      if (combo5 >= 20) list.push("안정감+2"); else if (combo5 >= 13) list.push("안정감+1");
+      const el = document.getElementById(`${base}-ability-preview`);
+      if (el) el.textContent = list.join(" · ");
+    }
+    function getStatModifierFromText(text, c) {
+      const s = c?.stats || {};
+      function tier(v){ if(!v) return 0; if(v<=4) return -1; if(v>=12) return 2; if(v>=10) return 1; return 0; }
+      const t = (text||"").toLowerCase();
+      let mods = 0;
+      if ((s.int || 0) >= 10) mods += 1;
+      if (/(공격|전투|무기|타격|근접|원거리)/i.test(t)) {
+        mods += Math.max(tier(s.str), tier(s.dex));
+        const combo = (s.str||0)+(s.dex||0);
+        if (combo >= 20) mods += 2; else if (combo >= 13) mods += 1;
+      } else if (/(마법|시전|주문|마도)/i.test(t)) {
+        mods += Math.max(tier(s.int), tier(s.cha));
+        if ((s.cha||0)+(s.wis||0) >= 20 && (tier(s.int)>=1 || tier(s.cha)>=1)) mods += 2;
+        else if ((s.cha||0)+(s.wis||0) >= 13 && (tier(s.int)>=1 || tier(s.cha)>=1)) mods += 1;
+      } else if (/(생존|회피|기술|체술|민첩|도약|잠입)/i.test(t)) {
+        mods += Math.max(tier(s.dex), tier(s.con));
+        const combo = (s.dex||0)+(s.con||0);
+        if (combo >= 20) mods += 2; else if (combo >= 13) mods += 1;
+      } else if (/(설득|협상|위협|기품|교섭|카리스마)/i.test(t)) {
+        mods += tier(s.cha);
+      } else if (/(직감|지혜|통찰|위험감지)/i.test(t)) {
+        mods += tier(s.wis);
+      }
+      return mods;
     }
 
 
@@ -939,12 +1147,18 @@
                   <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-slate-400">groups</span>
                   <select id="${baseId}-race" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white focus:border-emerald-400 focus:outline-none">
                     <option value="">선택하세요</option>
-                    <option value="휴먼">휴먼</option>
+                    <option value="인간">인간</option>
                     <option value="엘프">엘프</option>
+                    <option value="하프엘프">하프엘프</option>
+                    <option value="다크엘프">다크엘프</option>
                     <option value="드워프">드워프</option>
-                    <option value="하플링">하플링</option>
-                    <option value="티플링">티플링</option>
-                    <option value="반엘프">반엘프</option>
+                    <option value="바바리안">바바리안</option>
+                    <option value="언데드">언데드 (고인물 전용)</option>
+                    <option value="서큐버스">서큐버스</option>
+                    <option value="뱀파이어">뱀파이어</option>
+                    <option value="웨어비스트">웨어비스트</option>
+                    <option value="드래곤본">드래곤본</option>
+                    <option value="시레나">시레나</option>
                     <option value="기타">기타</option>
                   </select>
                 </div>
@@ -965,12 +1179,17 @@
                 <span class="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-slate-400">swords</span>
                 <select id="${baseId}-role" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white focus:border-emerald-400 focus:outline-none">
                   <option value="">선택하세요</option>
-                  <option value="파이터">파이터</option>
-                  <option value="위저드">위저드</option>
-                  <option value="로그">로그</option>
-                  <option value="클레릭">클레릭</option>
-                  <option value="바드">바드</option>
+                  <option value="전사">전사</option>
+                  <option value="음유시인">음유시인</option>
+                  <option value="성직자">성직자</option>
                   <option value="드루이드">드루이드</option>
+                  <option value="무투가">무투가</option>
+                  <option value="수도사">수도사</option>
+                  <option value="모험가">모험가</option>
+                  <option value="궁수">궁수</option>
+                  <option value="도적">도적</option>
+                  <option value="마법사">마법사</option>
+                  <option value="광신도">광신도</option>
                   <option value="기타">기타</option>
                 </select>
               </div>
@@ -989,6 +1208,42 @@
                 <textarea id="${baseId}-traits" rows="3" class="w-full rounded-2xl border border-white/20 bg-slate-900/60 py-3 pl-11 pr-4 text-base text-white placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none" placeholder="예: 과감하지만 동료에게 헌신적, 정의감 넘침."></textarea>
               </div>
             </label>
+            <div class="mt-2">
+              <p class="text-sm font-semibold text-white">능력치 (각 2d6)</p>
+              <div class="grid sm:grid-cols-2 gap-2 mt-2">
+                <div class="flex items-center gap-3">
+                  <span class="w-16 text-xs text-text-secondary">힘</span>
+                  <input id="${baseId}-stat-str" type="number" class="w-20 rounded-lg border border-white/20 bg-slate-900/60 py-2 px-3 text-white" readonly />
+                  <button type="button" id="${baseId}-roll-str" class="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white hover:border-primary hover:text-primary">2d6</button>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="w-16 text-xs text-text-secondary">민첩</span>
+                  <input id="${baseId}-stat-dex" type="number" class="w-20 rounded-lg border border-white/20 bg-slate-900/60 py-2 px-3 text-white" readonly />
+                  <button type="button" id="${baseId}-roll-dex" class="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white hover:border-primary hover:text-primary">2d6</button>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="w-16 text-xs text-text-secondary">지능</span>
+                  <input id="${baseId}-stat-int" type="number" class="w-20 rounded-lg border border-white/20 bg-slate-900/60 py-2 px-3 text-white" readonly />
+                  <button type="button" id="${baseId}-roll-int" class="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white hover:border-primary hover:text-primary">2d6</button>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="w-16 text-xs text-text-secondary">카리스마</span>
+                  <input id="${baseId}-stat-cha" type="number" class="w-20 rounded-lg border border-white/20 bg-slate-900/60 py-2 px-3 text-white" readonly />
+                  <button type="button" id="${baseId}-roll-cha" class="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white hover:border-primary hover:text-primary">2d6</button>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="w-16 text-xs text-text-secondary">건강</span>
+                  <input id="${baseId}-stat-con" type="number" class="w-20 rounded-lg border border-white/20 bg-slate-900/60 py-2 px-3 text-white" readonly />
+                  <button type="button" id="${baseId}-roll-con" class="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white hover:border-primary hover:text-primary">2d6</button>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="w-16 text-xs text-text-secondary">지혜</span>
+                  <input id="${baseId}-stat-wis" type="number" class="w-20 rounded-lg border border-white/20 bg-slate-900/60 py-2 px-3 text-white" readonly />
+                  <button type="button" id="${baseId}-roll-wis" class="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white hover:border-primary hover:text-primary">2d6</button>
+                </div>
+              </div>
+              <div id="${baseId}-ability-preview" class="mt-2 text-[11px] text-text-secondary"></div>
+            </div>
           </div>
         </div>
       `;
@@ -1006,6 +1261,14 @@
           role: document.getElementById(`char-${i}-role`)?.value || "",
           origin: document.getElementById(`char-${i}-origin`)?.value || "",
           traits: document.getElementById(`char-${i}-traits`)?.value || "",
+          stats: {
+            str: Number(document.getElementById(`char-${i}-stat-str`)?.value) || 0,
+            dex: Number(document.getElementById(`char-${i}-stat-dex`)?.value) || 0,
+            int: Number(document.getElementById(`char-${i}-stat-int`)?.value) || 0,
+            cha: Number(document.getElementById(`char-${i}-stat-cha`)?.value) || 0,
+            con: Number(document.getElementById(`char-${i}-stat-con`)?.value) || 0,
+            wis: Number(document.getElementById(`char-${i}-stat-wis`)?.value) || 0,
+          },
         });
       }
       return drafts;
@@ -1027,6 +1290,20 @@
           if (!el) return;
           el.value = draft?.[key] || "";
         });
+        const s = draft?.stats || {};
+        const statIds = {
+          str: `char-${index}-stat-str`,
+          dex: `char-${index}-stat-dex`,
+          int: `char-${index}-stat-int`,
+          cha: `char-${index}-stat-cha`,
+          con: `char-${index}-stat-con`,
+          wis: `char-${index}-stat-wis`,
+        };
+        Object.entries(statIds).forEach(([k, id]) => {
+          const el = document.getElementById(id);
+          if (el) el.value = s?.[k] || "";
+        });
+        updateAbilityPreview(index);
       });
     }
 
@@ -1042,6 +1319,13 @@
       characterFormsWrapper.dataset.count = String(safeCount);
       characterCountInput.value = safeCount;
       applyCharacterDrafts(drafts);
+      for (let i = 0; i < safeCount; i++) {
+        attachStatRollers(i);
+      }
+      const formEl = document.getElementById("character-form");
+      if (formEl) {
+        formEl.addEventListener("submit", (e) => e.preventDefault());
+      }
     }
 
     function showScenarioPanel() {
@@ -1084,10 +1368,12 @@
     }
 
     function getSystemPrompt(playerCount) {
-      return `당신은 던전 앤 드래곤 5판 규칙을 따르는 AI 게임 마스터입니다.
-플레이어는 총 ${playerCount}명이며, 능력치 판정과 공격/세이브 굴림 결과(고정 d6)를 기반으로 서술하세요.
-각 장면마다 예상 DC, 판정 근거, 다음 행동 선택지 2~3가지를 한국어로 제안하십시오.
-마크다운과 특수 서식(특히 ** 굵게 표기)을 사용하지 말고, 평문으로만 작성하십시오.` + (state.longPrompt ? `\n세계관 및 진행 지침:\n${state.longPrompt}` : "");
+      let base = `당신은 이 웹 TRPG의 AI 게임 마스터입니다.
+플레이어는 총 ${playerCount}명이며, 본 게임의 규칙과 UI를 이해하고 그것에 맞춰 진행합니다.
+출력은 반드시 평문으로만 작성하고, 마크다운/특수서식을 사용하지 않습니다.`;
+      if (state.longPrompt) base += `\n세계관 및 진행 지침:\n${state.longPrompt}`;
+      if (state.gmRules) base += `\nGM 운영 규칙:\n${state.gmRules}`;
+      return base;
     }
 
     function buildCharacterSummary(characters) {
@@ -1117,19 +1403,36 @@
         const c = me?.character || state.characters[0];
         const key = me?.sid || 'solo-0';
         ensureMultiStats();
-        const st = state.stats[key] || deriveDefaultStats(c || {});
+        if (!state.stats[key]) state.stats[key] = deriveDefaultStats(c || {});
+        const st = state.stats[key];
+        const level = st.level ?? 1;
+        const xp = st.xp ?? 0;
+        const prev = xpForLevel(level);
+        const next = xpForLevel(level + 1);
+        const prog = Math.max(0, Math.min(1, (xp - prev) / Math.max(1, (next - prev))));
+        const pct = Math.round(prog * 100);
         if (c) {
           content = `
             <div>
               <p class="text-sm font-semibold text-white">${c.name || "이름 없음"}</p>
-              <p class="text-xs text-text-secondary">${c.role || ""} ${c.race ? "· " + c.race : ""}</p>
-              <div class="mt-2 flex items-center gap-3">
-                ${renderPips(st.hp, st.hpMax, 'bg-rose-500')}
-                ${renderPips(st.sp, st.spMax, 'bg-sky-500')}
+              <p class="text-xs text-text-secondary">${c.role || ""} ${c.race ? "· " + c.race : ""} · Lv ${level}</p>
+              <div class="mt-2 space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-rose-300">체력</span>
+                  ${renderPips(st.hp, st.hpMax, 'bg-rose-500')}
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-sky-300">정신력</span>
+                  ${renderPips(st.sp, st.spMax, 'bg-sky-500')}
+                </div>
+              </div>
+              <div class="mt-1 h-2 w-full rounded bg-white/10 overflow-hidden">
+                <div class="h-full bg-primary" style="width:${pct}%;"></div>
               </div>
               <div class="mt-2">
                 ${renderStatusBadges(st.status)}
               </div>
+              <div class="mt-2 text-[11px] text-text-secondary">인벤토리 슬롯: ${st.inv ?? 5} · 가격 보정: 구매 -${Math.round(((st.buyMod ?? 0)*100))}% · 판매 +${Math.round(((st.sellMod ?? 0)*100))}%</div>
               <div class="mt-2 text-xs whitespace-pre-line">${buildCharacterSummary([c])}</div>
             </div>`;
         } else {
@@ -1140,23 +1443,107 @@
         ensureSoloStats();
         content = chars.map((c, idx) => {
           const key = `solo-${idx}`;
-          const st = state.stats[key] || deriveDefaultStats(c);
+          if (!state.stats[key]) state.stats[key] = deriveDefaultStats(c);
+          const st = state.stats[key];
+          const level = st.level ?? 1;
+          const xp = st.xp ?? 0;
+          const prev = xpForLevel(level);
+          const next = xpForLevel(level + 1);
+          const prog = Math.max(0, Math.min(1, (xp - prev) / Math.max(1, (next - prev))));
+          const pct = Math.round(prog * 100);
           return `
           <div class="mb-3">
             <p class="text-sm font-semibold text-white">${c.name || "이름 없음"}</p>
-            <p class="text-xs text-text-secondary">${c.role || ""} ${c.race ? "· " + c.race : ""}</p>
-            <div class="mt-2 flex items-center gap-3">
-              ${renderPips(st.hp, st.hpMax, 'bg-rose-500')}
-              ${renderPips(st.sp, st.spMax, 'bg-sky-500')}
+            <p class="text-xs text-text-secondary">${c.role || ""} ${c.race ? "· " + c.race : ""} · Lv ${level}</p>
+            <div class="mt-2 space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-rose-300">체력</span>
+                ${renderPips(st.hp, st.hpMax, 'bg-rose-500')}
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-sky-300">정신력</span>
+                ${renderPips(st.sp, st.spMax, 'bg-sky-500')}
+              </div>
+            </div>
+            <div class="mt-1 h-2 w-full rounded bg-white/10 overflow-hidden">
+              <div class="h-full bg-primary" style="width:${pct}%;"></div>
             </div>
             <div class="mt-2">
               ${renderStatusBadges(st.status)}
             </div>
+            <div class="mt-2 text-[11px] text-text-secondary">인벤토리 슬롯: ${st.inv ?? 5} · 가격 보정: 구매 -${Math.round(((st.buyMod ?? 0)*100))}% · 판매 +${Math.round(((st.sellMod ?? 0)*100))}%</div>
             <div class="mt-2 text-xs whitespace-pre-line">${buildCharacterSummary([c])}</div>
           </div>`;
         }).join("") || `<p class="text-xs text-text-secondary">캐릭터를 생성하세요.</p>`;
       }
       selfInfo.innerHTML = content;
+    }
+    function renderPartyStatsPanel() {
+      if (!partyStats) return;
+      let c = null, key = null;
+      if (state.mode === 'multi') {
+        const me = state.players.find(p => p.sid === socket.id);
+        c = me?.character || null;
+        key = me?.sid || null;
+        ensureMultiStats();
+      } else {
+        c = state.characters[0] || null;
+        key = 'solo-0';
+        ensureSoloStats();
+      }
+      if (!c) {
+        partyStats.innerHTML = `<p class="text-xs text-text-secondary">캐릭터가 없습니다.</p>`;
+        return;
+      }
+      if (!state.stats[key]) state.stats[key] = deriveDefaultStats(c);
+      const s = c.stats || {};
+      const grid = `
+        <div class="grid grid-cols-2 gap-2">
+          <div class="flex justify-between"><span>힘</span><span>${s.str ?? "-"}</span></div>
+          <div class="flex justify-between"><span>민첩</span><span>${s.dex ?? "-"}</span></div>
+          <div class="flex justify-between"><span>지능</span><span>${s.int ?? "-"}</span></div>
+          <div class="flex justify-between"><span>카리스마</span><span>${s.cha ?? "-"}</span></div>
+          <div class="flex justify-between"><span>건강</span><span>${s.con ?? "-"}</span></div>
+          <div class="flex justify-between"><span>지혜</span><span>${s.wis ?? "-"}</span></div>
+        </div>
+      `;
+      partyStats.innerHTML = grid;
+    }
+    function updateProfileCard() {
+      const nameEl = document.getElementById("profile-name");
+      const subEl = document.getElementById("profile-sub");
+      const imgEl = document.getElementById("profile-image");
+      let c = null;
+      let levelText = "";
+      let key = null;
+      if (state.mode === 'multi') {
+        const me = state.players.find(p => p.sid === socket.id);
+        c = me?.character || null;
+        key = me?.sid || null;
+      } else {
+        c = state.characters[0] || null;
+        key = 'solo-0';
+      }
+      if (key && state.stats && state.stats[key]) {
+        const lv = state.stats[key].level || 1;
+        levelText = ` · Lv ${lv}`;
+      }
+      if (nameEl) nameEl.textContent = c?.name || "모험가";
+      if (subEl) subEl.textContent = c ? `${c.role || ""}${c.role && c.race ? " · " : ""}${c.race || ""}${levelText}` : "Level • Alignment";
+      if (imgEl) {
+        const fallback = 'https://placeholder.pics/svg/120';
+        const raceUrl = c?.race && RACE_AVATAR_MAP[c.race] ? RACE_AVATAR_MAP[c.race] : null;
+        const url = c?.avatarUrl || raceUrl || fallback;
+        const tester = new Image();
+        tester.onload = () => { imgEl.style.backgroundImage = `url('${url}')`; };
+        tester.onerror = () => { imgEl.style.backgroundImage = `url('${fallback}')`; };
+        tester.src = url;
+      }
+    }
+    function updateMapImage() {
+      const el = document.getElementById("map-image");
+      const url = state.mapUrl || 'https://placeholder.pics/svg/300';
+      if (el) el.style.backgroundImage = `url('${url}')`;
     }
 
     function renderCompanionsInfo() {
@@ -1171,7 +1558,8 @@
           const c = p.character || {};
           const key = p.sid || p.name;
           ensureMultiStats();
-          const st = state.stats[key] || deriveDefaultStats(c);
+          if (!state.stats[key]) state.stats[key] = deriveDefaultStats(c);
+          const st = state.stats[key];
           return `
             <div class="mb-3">
               <p class="text-sm font-semibold text-white">${p.name}</p>
@@ -1189,10 +1577,60 @@
     }
     function deriveDefaultStats(c) {
       const role = (c?.role || "").toLowerCase();
-      let hpMax = 5, spMax = 5;
-      if (/(전사|기사|바바리안|팔라딘)/i.test(role)) { hpMax = 6; spMax = 4; }
-      if (/(마법사|위저드|소서러|클레릭|사제)/i.test(role)) { hpMax = 4; spMax = 6; }
-      return { hp: hpMax, hpMax, sp: spMax, spMax, status: [] };
+      const s = c?.stats || {};
+      function tier(v) {
+        if (!v || v <= 0) return 0;
+        if (v <= 4) return -1;
+        if (v >= 12) return 2;
+        if (v >= 10) return 1;
+        return 0;
+      }
+      let hpMax = Math.floor((s.con || 0) / 3);
+      let spMax = Math.floor((s.wis || 0) / 3);
+      const tCon = tier(s.con);
+      const tWis = tier(s.wis);
+      const tCha = tier(s.cha);
+      hpMax = Math.max(0, hpMax);
+      spMax = Math.max(0, spMax);
+      const status = [];
+      if (tier(s.str) === -1) status.push("약한 근력");
+      if (tier(s.dex) === -1) status.push("느릿함");
+      if (tier(s.int) === -1) status.push("멍청함");
+      if (tier(s.cha) === -1) status.push("미약함");
+      if (tCon === -1) status.push("허약함");
+      if (tWis === -1) status.push("어리숙함");
+      if (tier(s.str) === 1) status.push("괴력+1");
+      if (tier(s.str) === 2) status.push("괴력+2");
+      if (tier(s.dex) === 1) status.push("체술+1");
+      if (tier(s.dex) === 2) status.push("체술+2");
+      if (tier(s.int) === 1) status.push("마법시전+1");
+      if (tier(s.int) === 2) status.push("마법시전+2");
+      if (tier(s.cha) === 1) status.push("마법시전+1");
+      if (tier(s.cha) === 2) status.push("마법시전+2");
+      if (tier(s.wis) === 1) status.push("직감+1");
+      if (tier(s.wis) === 2) status.push("직감+2");
+      const combo1 = (s.str || 0) + (s.dex || 0);
+      if (combo1 >= 20) status.push("무기숙련+2");
+      else if (combo1 >= 13) status.push("무기숙련+1");
+      const combo2 = (s.str || 0) + (s.con || 0);
+      if (combo2 >= 20) status.push("강인함+2");
+      else if (combo2 >= 13) status.push("강인함+1");
+      const combo3 = (s.dex || 0) + (s.con || 0);
+      if (combo3 >= 20) status.push("생존기술+2");
+      else if (combo3 >= 13) status.push("생존기술+1");
+      const combo4 = (s.cha || 0) + (s.wis || 0);
+      const hasMagic = tier(s.int) >= 1 || tier(s.cha) >= 1;
+      if (hasMagic) {
+        if (combo4 >= 20) status.push("마법변환+2");
+        else if (combo4 >= 13) status.push("마법변환+1");
+      }
+      const combo5 = (s.con || 0) + (s.wis || 0);
+      if (combo5 >= 20) status.push("안정감+2");
+      else if (combo5 >= 13) status.push("안정감+1");
+      const invSlots = 5 + Math.floor((s.str || 0) / 3);
+      const buyAdj = Math.floor((s.cha || 0) / 10) * 0.10;
+      const sellAdj = Math.floor((s.cha || 0) / 10) * 0.10;
+      return { hp: hpMax, hpMax, sp: spMax, spMax, status, inv: invSlots, buyMod: buyAdj, sellMod: sellAdj };
     }
     function ensureSoloStats() {
       state.characters.forEach((c, idx) => {
@@ -1224,6 +1662,94 @@
       if (/(공격|전투|타격|부상|넘어짐|추락|칼|창|활|격투|방패|근접|원거리)/i.test(t)) return "hp";
       if (/(공포|정신|혼란|스트레스|위협|환각|저주|설득 실패|협상 실패)/i.test(t)) return "sp";
       return Math.random() < 0.5 ? "hp" : "sp";
+    }
+    function shouldRoll(content) {
+      const t = (content || "").trim().toLowerCase();
+      if (!t) return false;
+      if (/^([.!?…]+|아+|음+|흠+|하하+|허허+|에[에]*|후우+|헉+|으악+|ㅋ+|ㅠ+|ㅡ+|ㅎ+)+$/.test(t)) return false;
+      if (t.length <= 2) return false;
+      const actionKeywords = /(공격|전투|회피|도약|잠입|등반|수색|관찰|직감|시전|주문|치유|도주|설득|위협|협상|사격|투척|잠금해제|해킹|끊기|부수기|뜀|당기기|밀기|타격|방어|회복|생존|제거|탈출|돌파|열기|닫기|잡기|던지기|베기|찌르기|응급|첫|행동|시도|판정|굴림)/i;
+      const diceKeywords = /(주사위|굴림|roll|d6|판정)/i;
+      const hasAction = actionKeywords.test(t) || diceKeywords.test(t);
+      return hasAction;
+    }
+    function computeXpGain(content, success) {
+      if (!success) return 0;
+      const t = (content || "").toLowerCase();
+      if (/(설득|협상|유혹|위협|교섭)/i.test(t)) return 3;
+      if (/(공격|전투|타격|격투|사격|투척|처치|제압|승리)/i.test(t)) return 4;
+      if (/(시전|주문|마법|탐색|수색|잠입|회피|등반|생존)/i.test(t)) return 3;
+      return 2;
+    }
+    function incrementActionCount(key, action) {
+      if (!key || !action) return;
+      if (!state.actionCounts[key]) state.actionCounts[key] = {};
+      state.actionCounts[key][action] = (state.actionCounts[key][action] || 0) + 1;
+    }
+    function getCharacterRefByKey(key) {
+      if (state.mode === 'multi') {
+        const p = (state.players || []).find(x => x.sid === key);
+        return p?.character || null;
+      } else {
+        const idx = key?.startsWith('solo-') ? Number(key.split('-')[1]||'0') : 0;
+        return state.characters[idx] || null;
+      }
+    }
+    function levelUpBoostStats(key) {
+      const c = getCharacterRefByKey(key);
+      if (!c) return;
+      c.stats = c.stats || { str:0,dex:0,int:0,cha:0,con:0,wis:0 };
+      const counts = state.actionCounts[key] || {};
+      const map = {
+        melee: ['str','dex'],
+        ranged: ['dex','str'],
+        magic: ['int','cha'],
+        survival: ['dex','con'],
+        social: ['cha'],
+        insight: ['wis'],
+        general: ['str','dex','wis']
+      };
+      const weights = { str:1, dex:1, int:1, cha:1, con:1, wis:1 };
+      Object.entries(counts).forEach(([act, cnt]) => {
+        const list = map[act] || [];
+        list.forEach(sn => { weights[sn] = (weights[sn] || 0) + cnt; });
+      });
+      const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+      const topAct = entries.length ? entries[0][0] : 'general';
+      (map[topAct] || []).forEach(sn => { weights[sn] += Math.ceil(((counts[topAct]||1))/2); });
+      function pickWeighted(w) {
+        const keys = Object.keys(w);
+        const sum = keys.reduce((acc,k)=>acc+(w[k]||0),0);
+        let r = Math.random()*sum;
+        for (const k of keys) {
+          r -= (w[k]||0);
+          if (r <= 0) return k;
+        }
+        return keys[keys.length-1];
+      }
+      for (let i=0;i<3;i++) {
+        const chosen = pickWeighted(weights);
+        c.stats[chosen] = (c.stats[chosen]||0) + 1;
+      }
+      ensureSoloStats();
+      ensureMultiStats();
+    }
+    function awardXpForAction(key, content, success) {
+      if (!key) return;
+      ensureSoloStats();
+      ensureMultiStats();
+      const st = state.stats[key];
+      const gain = computeXpGain(content, success);
+      st.xp = (st.xp || 0) + gain;
+      while (st.xp >= xpForLevel((st.level || 1) + 1)) {
+        st.level = (st.level || 1) + 1;
+        levelUpBoostStats(key);
+      }
+      renderSelfInfo();
+      renderPartyStatsPanel();
+      if (state.mode === 'multi') {
+        socket.emit('update_stats', { code: state.roomCode, sid: key, stats: st });
+      }
     }
     function applyFailureDamage(contextText) {
       if (state.mode === 'multi') {
@@ -1275,6 +1801,14 @@
         const role = document.getElementById(`${prefix}-role`)?.value || "";
         const origin = document.getElementById(`${prefix}-origin`)?.value.trim() || "";
         const traits = document.getElementById(`${prefix}-traits`)?.value.trim() || "";
+        const stats = {
+          str: Number(document.getElementById(`${prefix}-stat-str`)?.value) || 0,
+          dex: Number(document.getElementById(`${prefix}-stat-dex`)?.value) || 0,
+          int: Number(document.getElementById(`${prefix}-stat-int`)?.value) || 0,
+          cha: Number(document.getElementById(`${prefix}-stat-cha`)?.value) || 0,
+          con: Number(document.getElementById(`${prefix}-stat-con`)?.value) || 0,
+          wis: Number(document.getElementById(`${prefix}-stat-wis`)?.value) || 0,
+        };
 
         if (!name) {
           throw new Error(`플레이어 ${i + 1}의 이름을 입력하세요.`);
@@ -1301,6 +1835,7 @@
           role,
           origin,
           traits,
+          stats,
         });
       }
       return characters;
@@ -1388,16 +1923,6 @@
     function logDiceResult(roll) {
       const difficultyInfo = difficultyTargets[roll.difficulty] || difficultyTargets.standard;
       const outcome = roll.total >= difficultyInfo.target ? "성공" : "실패";
-      const item = document.createElement("li");
-      const timestamp = new Date().toLocaleTimeString();
-      item.textContent = `[${timestamp}] ${difficultyInfo.label} | ${roll.first} + ${roll.second} = ${roll.total} → ${outcome}`;
-      const activity = document.getElementById("activity-log");
-      if (activity) {
-        activity.prepend(item);
-        while (activity.children.length > 50) {
-          activity.removeChild(activity.lastChild);
-        }
-      }
       // 스타일 카드로 채팅에 시스템 판정 표시
       const card = document.createElement("div");
       card.className = "flex justify-center my-4";
@@ -1607,6 +2132,11 @@
 
       // UI 패널 표시
       if (startBtn) startBtn.classList.add("hidden");
+      updateProfileCard();
+      ensureSoloStats();
+      renderSelfInfo();
+      renderPartyStatsPanel();
+      renderCompanionsInfo();
       renderSelfInfo();
       enterCompactMode();
       if (autoRoll) {
@@ -1687,6 +2217,13 @@
           state.longPrompt = text;
         }
       } catch {}
+      try {
+        const res2 = await fetch('/prompts/gm_rules.md');
+        if (res2.ok) {
+          const text2 = (await res2.text()).trim();
+          state.gmRules = text2;
+        }
+      } catch {}
       // URL로 방 자동 참가 지원 (?room=CODE)
       try {
         const params = new URLSearchParams(window.location.search);
@@ -1708,12 +2245,14 @@
       try {
         const characters = collectCharacterData();
         state.characters = characters;
+        updateProfileCard();
 
         if (state.mode === 'multi') {
             socket.emit('update_character', { code: state.roomCode, character: characters[0] });
             pageCharacter.classList.add("hidden");
             pageWaitingRoom.classList.remove("hidden");
             renderSelfInfo();
+            renderPartyStatsPanel();
             return;
         }
 
@@ -1723,11 +2262,22 @@
         pageGame.classList.remove("hidden");
         btnSaveGame.classList.remove("hidden"); // 저장 버튼 표시
         setStatus("랜덤 시나리오를 확인하고 '시작'을 누르세요.");
+        ensureSoloStats();
         renderSelfInfo();
+        renderPartyStatsPanel();
+        renderCompanionsInfo();
       } catch (error) {
         setCharacterStatus(error.message, true);
       }
     });
+    if (btnSetMap && mapImageUrlInput) {
+      btnSetMap.addEventListener("click", () => {
+        const url = mapImageUrlInput.value.trim();
+        if (!url) return;
+        state.mapUrl = url;
+        updateMapImage();
+      });
+    }
 
     const handleCharacterCountInput = () => {
       const desired = clampCharacterCount(Number(characterCountInput.value) || 1);
@@ -1755,21 +2305,39 @@
         setStatus("행동 또는 주사위 판정 내용을 입력하세요.", true);
         return;
       }
-      const auto = autoDetermineDifficulty(content);
-      const difficultyKey = auto.key;
-      const roll = await rollDiceWithAnimation(difficultyKey).catch(() => ({
-        first: 1,
-        second: 1,
-        total: 2,
-        difficulty: difficultyKey
-      }));
-      const info = auto.info;
-      const target = auto.target;
-      const outcome = roll.total >= target ? "성공" : "실패";
-      const diceNote = `\n\n[자동 판정]\n난이도 ${info.label} (목표 ${target})\n주사위: ${roll.first} + ${roll.second} = ${roll.total} → ${outcome}`;
-      const fullMessage = `${content}${diceNote}`;
-      if (outcome === "실패") {
-        applyFailureDamage(content);
+      let currentChar = null;
+      if (state.mode === 'multi') {
+        currentChar = state.players[state.turnIndex]?.character || null;
+      } else {
+        currentChar = state.characters[0] || null;
+      }
+      let fullMessage = content;
+      if (shouldRoll(content)) {
+        const auto = autoDetermineDifficulty(content, currentChar);
+        const difficultyKey = auto.key;
+        const keyForCount = state.mode === 'multi' ? (state.players[state.turnIndex]?.sid || null) : 'solo-0';
+        state.lastActionKey = keyForCount;
+        if (keyForCount) incrementActionCount(keyForCount, auto.action);
+        const roll = await rollDiceWithAnimation(difficultyKey).catch(() => ({
+          first: 1,
+          second: 1,
+          total: 2,
+          difficulty: difficultyKey
+        }));
+        const info = auto.info;
+        const target = auto.target;
+        const statMod = getStatModifierFromText(content, currentChar);
+        const totalWithMod = roll.total + Math.max(0, statMod);
+        const outcome = totalWithMod >= target ? "성공" : "실패";
+        const modText = statMod ? ` + 보정 ${Math.max(0,statMod)}` : "";
+        const diceNote = `\n\n[자동 판정]\n난이도 ${info.label} (목표 ${target})\n주사위: ${roll.first} + ${roll.second} = ${roll.total}${modText} → ${outcome}`;
+        fullMessage = `${content}${diceNote}`;
+        if (outcome === "실패") {
+          applyFailureDamage(content);
+        }
+        if (outcome === "성공" && keyForCount) {
+          awardXpForAction(keyForCount, content, true);
+        }
       }
 
       playerInput.value = "";
@@ -1899,16 +2467,20 @@
         if (state.restoringMultiSave) {
             const restored = state.restorePlayers.map(p => ({
                 name: p.name,
-                character: p.character
+                character: p.character,
+                spectator: !!p.spectator,
+                stats: p.stats || {},
+                is_ready: p.is_ready !== false
             }));
             socket.emit('restore_room', { 
                 code: state.roomCode, 
                 players: restored, 
-                turn_index: 0, 
+                turn_index: state.restoreTurn || 0, 
                 chat_html: state.restoreChatHtml,
-                start_playing: false
+                start_playing: !!state.restorePlaying
             });
             state.restoringMultiSave = false;
+            state.restoredStartPlaying = !!state.restorePlaying;
         }
     });
 
@@ -1930,7 +2502,18 @@
     });
     socket.on('stats_updated', (data) => {
         state.players = data.players;
+        ensureMultiStats();
+        (data.players || []).forEach(p => {
+          const sid = p.sid;
+          if (!sid) return;
+          state.stats[sid] = {
+            ...(state.stats[sid] || deriveDefaultStats(p.character || {})),
+            ...(p.stats || {})
+          };
+        });
+        updateProfileCard();
         renderSelfInfo();
+        renderPartyStatsPanel();
         renderCompanionsInfo();
     });
 
@@ -1960,7 +2543,9 @@
         pageWaitingRoom.classList.add("hidden");
         pageGame.classList.remove("hidden");
         
+        updateProfileCard();
         renderSelfInfo();
+        renderPartyStatsPanel();
         renderCompanionsInfo();
         enterCompactMode();
         updateControlLocks();
@@ -1968,7 +2553,11 @@
         if (startBtn) startBtn.classList.add("hidden");
         
         if (state.isHost) {
-            startMultiplayerSession();
+            if (!state.restoredStartPlaying) {
+                startMultiplayerSession();
+            } else {
+                state.restoredStartPlaying = false;
+            }
             btnSaveGame.classList.remove("hidden");
         } else {
             btnSaveGame.classList.add("hidden");
@@ -1977,6 +2566,15 @@
     
     socket.on('new_message', (data) => {
         appendChat(data.sender === "GM" ? "assistant" : "user", data.content);
+        if (data.sender === "GM") {
+          const amount = parseXpFromText(data.content);
+          if (amount > 0) {
+            const key = state.mode === 'multi'
+              ? (state.lastActionKey || (state.players[state.turnIndex]?.sid || null))
+              : 'solo-0';
+            awardXpExplicit(key, amount);
+          }
+        }
         if (data.type === 'user' && state.isHost) {
              handleMultiplayerGM(data.content, data.sender);
         }

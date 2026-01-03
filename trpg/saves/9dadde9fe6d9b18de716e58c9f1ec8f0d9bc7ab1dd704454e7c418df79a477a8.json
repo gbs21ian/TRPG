@@ -1,0 +1,102 @@
+[
+  {
+    "id": "ee23cab2-6014-44ec-b059-7d6e0b509e7c",
+    "title": "이안의 모험 (Multi)",
+    "timestamp": 1767444099053,
+    "provider": "gemini",
+    "model": "gemini-robotics-er-1.5-preview",
+    "history": [
+      {
+        "role": "user",
+        "content": "[개발자] 기능 테스트를 하려하는데 나한테 경험치를 소량 지급해봐"
+      },
+      {
+        "role": "assistant",
+        "content": "[경험치 지급 시스템 시뮬레이션 시작]\n\n기능 테스트 요청 확인했습니다.\n저는 실제 게임 시스템이 아니기 때문에 사용자 계정에 경험치를 실제로 추가할 수는 없습니다.\n\n하지만 테스트 상황을 가정하여, 요청하신 '소량의 경험치 지급'에 대한 시뮬레이션 결과를 알려드리겠습니다.\n\n---\n\n[시스템 메시지]\n*   대상: [개발자] 사용자\n*   요청된 작업: 경험치 지급 (소량)\n*   지급량: 50 XP\n*   작업 결과: 성공적으로 경험치 50이 지급되었습니다.\n*   현재 레벨: (테스트 전 레벨에서 50 XP만큼 증가)\n\n---\n\n[테스트 완료]\n\n테스트가 잘 진행되었는지 확인해 주십시오. 추가적인 시뮬레이션이 필요하시면 요청해주세요."
+      }
+    ],
+    "currentScenario": "기본 시나리오",
+    "playerCount": 1,
+    "characters": [
+      {
+        "age": "17",
+        "gender": "여성",
+        "name": "이안",
+        "origin": "몰라",
+        "race": "엘프",
+        "role": "음유시인",
+        "stats": {
+          "cha": 11,
+          "con": 10,
+          "dex": 12,
+          "int": 7,
+          "str": 6,
+          "wis": 3
+        },
+        "traits": "몰라"
+      }
+    ],
+    "mode": "solo",
+    "chatHtml": "<div class=\"flex gap-4 max-w-3xl flex-row-reverse ml-auto\"><div class=\"flex-none size-10 rounded-full bg-gray-700 bg-center bg-cover\"></div><div class=\"flex flex-col gap-1\"><span class=\"text-text-secondary text-sm font-bold mr-1\">You</span><div class=\"rich-text bg-primary text-white rounded-2xl rounded-tr-none p-4 shadow-lg shadow-primary/10\">[개발자] 기능 테스트를 하려하는데 나한테 경험치를 소량 지급해봐</div></div></div><div class=\"flex gap-4 max-w-3xl \"><div class=\"flex-none size-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center\"><span class=\"material-symbols-outlined text-white text-xl\">smart_toy</span></div><div class=\"flex flex-col gap-1\"><span class=\"text-primary text-sm font-bold ml-1\">Game Master (AI)</span><div class=\"rich-text bg-surface-dark border border-surface-border text-gray-200 rounded-2xl rounded-tl-none p-5 shadow-lg\">[경험치 지급 시스템 시뮬레이션 시작]\n\n기능 테스트 요청 확인했습니다.\n저는 실제 게임 시스템이 아니기 때문에 사용자 계정에 경험치를 실제로 추가할 수는 없습니다.\n\n하지만 테스트 상황을 가정하여, 요청하신 '소량의 경험치 지급'에 대한 시뮬레이션 결과를 알려드리겠습니다.\n\n---\n\n[시스템 메시지]\n*   대상: [개발자] 사용자\n*   요청된 작업: 경험치 지급 (소량)\n*   지급량: 50 XP\n*   작업 결과: 성공적으로 경험치 50이 지급되었습니다.\n*   현재 레벨: (테스트 전 레벨에서 50 XP만큼 증가)\n\n---\n\n[테스트 완료]\n\n테스트가 잘 진행되었는지 확인해 주십시오. 추가적인 시뮬레이션이 필요하시면 요청해주세요.</div></div></div>",
+    "longPrompt": "제목: 기본 세계관 프롬프트\n\n세계 배경:\n- 시대, 지역, 주요 세력\n\n마법/기술 규칙:\n- 가능/불가능한 능력과 제약\n\n서사 톤:\n- 문체, 분위기, 금지 표현\n\n주요 인물/세력:\n- 역할, 목표, 갈등\n\n진행 규칙:\n- 전투/판정 흐름, 선택지 제시 원칙\n\n특별 지침:\n- 금지 요소, 반드시 포함할 요소",
+    "stats": {
+      "solo-0": {
+        "hp": 3,
+        "hpMax": 3,
+        "sp": 1,
+        "spMax": 1,
+        "status": [
+          "어리숙함",
+          "체술+2",
+          "마법시전+1",
+          "무기숙련+1",
+          "강인함+1",
+          "생존기술+2",
+          "마법변환+1",
+          "안정감+1"
+        ],
+        "inv": 7,
+        "buyMod": 0.1,
+        "sellMod": 0.1
+      }
+    },
+    "turnIndex": 0,
+    "playing": true,
+    "mapUrl": null
+  },
+  {
+    "id": "1d37d563-d476-4a3b-aa67-fd9b3390d485",
+    "title": "이안의 모험 (Multi)",
+    "timestamp": 1767443386211,
+    "provider": "gemini",
+    "model": "gemini-robotics-er-1.5-preview",
+    "history": [],
+    "currentScenario": "기본 시나리오",
+    "playerCount": 1,
+    "characters": [
+      {
+        "name": "이안",
+        "gender": "여성",
+        "race": "다크엘프",
+        "age": "17",
+        "role": "광신도",
+        "origin": "몰라",
+        "traits": "몰라",
+        "stats": {
+          "str": 7,
+          "dex": 10,
+          "int": 2,
+          "cha": 9,
+          "con": 4,
+          "wis": 6
+        }
+      }
+    ],
+    "mode": "solo",
+    "chatHtml": "",
+    "longPrompt": "제목: 기본 세계관 프롬프트\n\n세계 배경:\n- 시대, 지역, 주요 세력\n\n마법/기술 규칙:\n- 가능/불가능한 능력과 제약\n\n서사 톤:\n- 문체, 분위기, 금지 표현\n\n주요 인물/세력:\n- 역할, 목표, 갈등\n\n진행 규칙:\n- 전투/판정 흐름, 선택지 제시 원칙\n\n특별 지침:\n- 금지 요소, 반드시 포함할 요소",
+    "turnIndex": 0,
+    "playing": true,
+    "mapUrl": null
+  }
+]

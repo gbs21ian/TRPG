@@ -1,5 +1,72 @@
 [
   {
+    "id": "b072564f-0900-4a3d-9865-818065ff8a4f",
+    "title": "이안의 모험 (Multi)",
+    "timestamp": 1767367886916,
+    "provider": "gemini",
+    "model": "gemini-robotics-er-1.5-preview",
+    "history": [],
+    "currentScenario": "기본 시나리오",
+    "playerCount": 1,
+    "characters": [
+      {
+        "name": "이안",
+        "gender": "여성",
+        "race": "서큐버스",
+        "age": "18",
+        "role": "성직자",
+        "origin": "서큐버스다",
+        "traits": "서큐버스다",
+        "stats": {
+          "str": 10,
+          "dex": 9,
+          "int": 9,
+          "cha": 6,
+          "con": 7,
+          "wis": 7
+        }
+      }
+    ],
+    "mode": "solo",
+    "chatHtml": "",
+    "longPrompt": "제목: 기본 세계관 프롬프트\n\n세계 배경:\n- 시대, 지역, 주요 세력\n\n마법/기술 규칙:\n- 가능/불가능한 능력과 제약\n\n서사 톤:\n- 문체, 분위기, 금지 표현\n\n주요 인물/세력:\n- 역할, 목표, 갈등\n\n진행 규칙:\n- 전투/판정 흐름, 선택지 제시 원칙\n\n특별 지침:\n- 금지 요소, 반드시 포함할 요소",
+    "turnIndex": 0,
+    "playing": true
+  },
+  {
+    "id": "87e14e75-b703-4265-8388-0a621b91c1b2",
+    "title": "이안의 모험 (Multi)",
+    "timestamp": 1767364068361,
+    "provider": "gemini",
+    "model": "gemini-robotics-er-1.5-preview",
+    "history": [],
+    "currentScenario": "산성비가 내리는 아이언홀드 폐광. 고블린들이 세계수 뿌리를 훔쳤고, 네 명의 용사가 되찾아야 한다.",
+    "playerCount": 1,
+    "characters": [
+      {
+        "age": "18",
+        "gender": "여성",
+        "name": "이안",
+        "origin": "최강",
+        "race": "엘프",
+        "role": "파이터",
+        "traits": "최강"
+      }
+    ],
+    "mode": "solo",
+    "chatHtml": "",
+    "longPrompt": "",
+    "stats": {
+      "solo-0": {
+        "hp": 5,
+        "hpMax": 5,
+        "sp": 5,
+        "spMax": 5,
+        "status": []
+      }
+    }
+  },
+  {
     "id": "55ef2a65-aa41-4b75-9777-8713ddd7be04",
     "title": "이안의 모험 (Multi)",
     "timestamp": 1767357432501,
@@ -107,28 +174,5 @@
     "chatHtml": "<div class=\"flex gap-3\"><div class=\"mt-1 h-8 w-8 flex-shrink-0 rounded-full border border-slate-800 flex items-center justify-center bg-slate-800/80\">GM</div><div class=\"rich-text flex-1 rounded-3xl border border-slate-800/80 bg-slate-900/80 px-5 py-4 text-base\">GM: [게임 시작]\n황혼이 깔린 디르나 숲. 고대 드루이드의 돌무더기 아래에 봉인된 정령핵을 찾기 위해 3층 깊이의 던전에 잠입한다.\n\nGM이 오프닝을 작성 중입니다...</div></div>",
     "longPrompt": "제목: 기본 세계관 프롬프트\n\n세계 배경:\n- 시대, 지역, 주요 세력\n\n마법/기술 규칙:\n- 가능/불가능한 능력과 제약\n\n서사 톤:\n- 문체, 분위기, 금지 표현\n\n주요 인물/세력:\n- 역할, 목표, 갈등\n\n진행 규칙:\n- 전투/판정 흐름, 선택지 제시 원칙\n\n특별 지침:\n- 금지 요소, 반드시 포함할 요소",
     "roomCode": "QI5PT2"
-  },
-  {
-    "id": "87e14e75-b703-4265-8388-0a621b91c1b2",
-    "title": "이안의 모험 (Multi)",
-    "timestamp": 1767288215005,
-    "provider": "gemini",
-    "model": "gemini-robotics-er-1.5-preview",
-    "history": [],
-    "currentScenario": "산성비가 내리는 아이언홀드 폐광. 고블린들이 세계수 뿌리를 훔쳤고, 네 명의 용사가 되찾아야 한다.",
-    "playerCount": 1,
-    "characters": [
-      {
-        "name": "이안",
-        "gender": "여성",
-        "race": "엘프",
-        "age": "18",
-        "role": "파이터",
-        "origin": "최강",
-        "traits": "최강"
-      }
-    ],
-    "mode": "solo",
-    "chatHtml": ""
   }
 ]
